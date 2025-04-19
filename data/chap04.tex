@@ -93,32 +93,33 @@ MLGNN的优化过程如下（参照 Algorithm \ref{Alg_1} 和式~(\ref{equ_12})�
     c.  通过GNN层 $\mathrm{Gc}(\cdot)$ 进行消息传递和特征变换，得到下一层表示 $\mathbf{h}^{(k+1)}$（式~(\ref{equ_11})）。
 5.  将查询节点的最终表示送入Softmax分类器得到预测结果。
 6.  整个模型（CNN $\phi$、MLP $\psi_{\tilde{\theta}}$、GNN层 $\theta^{(k)}$）的参数 $\Theta$ 通过MLGNN元学习框架（Algorithm \ref{Alg_1}, \ref{Alg_2}, 式~(\ref{equ_12})〜(\ref{equ_15})）进行优化，目标是学习一个能够快速适应包含角度变化的新任务的良好初始化。
-\begin{algorithm}[h]
-\SetAlgoLined % 使用线条分隔
-\DontPrintSemicolon % 不打印结尾分号
-\LinesNumbered % 显示行号
-\footnotesize % 设置字体大小
+
+% ----- Replacement for Algorithm 4.1 (alg:meta_training_angle) -----
+\begin{algorithm}[h!]
+\SetAlgoLined
+\DontPrintSemicolon
 \caption{面向角度变化的样本间关系挖掘元学习（元训练）}
 \label{alg:meta_training_angle}
 \KwIn{任务分布 $p(\mathcal{T})$ (包含不同角度样本), 内循环学习率 $\alpha$, 外循环学习率 $\beta$, 任务集大小 $C, C'$, GNN模型 $f_\Theta$ (含CNN $\phi$, MLP $\psi_{\tilde{\theta}}$, GNN层 $\theta^{(k)}$)}
 \KwOut{元训练后的参数 $\Theta^*$}
+
 初始化元参数 $\Theta$\;
 \While{not converged}{
   Sample batch of meta-task sets $\mathbf{T}_i = (\mathcal{S}_{\mathcal{T},i}, \mathcal{Q}_{\mathcal{T},i})$ from $p(\mathcal{T})$\;
   Initialize meta-gradient $\nabla_\theta \mathcal{L}_{meta} = 0$\;
   \For{each meta-task set $\mathbf{T}_i$}{
     Initialize adapted parameters $\Theta'_i = \Theta$\;
-    \Comment{内循环：适应支持任务集}
+    \tcp{内循环：适应支持任务集}
+    $\mathcal{L}_{support} = 0$\;
     \For{each task $\mathcal{T}_{\mathcal{S},j} = (S_{\mathcal{S},j}, Q_{\mathcal{S},j})$ in $\mathcal{S}_{\mathcal{T},i}$}{
        Build graph $G_{\mathcal{T}_{\mathcal{S},j}}$ from $S_{\mathcal{S},j} \cup Q_{\mathcal{S},j}$\;
-       Compute loss $\mathcal{L}_j = \mathcal{L}(f_{\Theta}(\mathcal{T}_{\mathcal{S},j}), Y_j)$ using Eq. (4.3)\; % 引用本文中的公式编号
-       % 执行一步或多步梯度更新来得到 Theta'_i，这里简化为基于总损失更新
+       Compute loss $\mathcal{L}_j = \mathcal{L}(f_{\Theta}(\mathcal{T}_{\mathcal{S},j}), Y_j)$ using Eq. (4.3)\;
+       $\mathcal{L}_{support} \leftarrow \mathcal{L}_{support} + \mathcal{L}_j$\;
     }
-    Compute total support loss $\mathcal{L}_{support} = \sum_{j=1}^C \mathcal{L}_j$\;
-    $\Theta'_i \leftarrow \Theta - \alpha \nabla_{\Theta} \mathcal{L}_{support}$ \Comment*[r]{内循环参数适应}
+    $\Theta'_i \leftarrow \Theta - \alpha \nabla_{\Theta} \mathcal{L}_{support}$ \tcp*{内循环参数适应}
 
-    \Comment{外循环：计算元梯度}
-    Initialize query loss $\mathcal{L}_{query\_total} = 0$\;
+    \tcp{外循环：计算元梯度}
+    $\mathcal{L}_{query\_total} = 0$\;
     \For{each task $\mathcal{T}_{\mathcal{Q},k} = (S_{\mathcal{Q},k}, Q_{\mathcal{Q},k})$ in $\mathcal{Q}_{\mathcal{T},i}$}{
        Build graph $G_{\mathcal{T}_{\mathcal{Q},k}}$ from $S_{\mathcal{Q},k} \cup Q_{\mathcal{Q},k}$\;
        Compute loss $\mathcal{L}_k' = \mathcal{L}(f_{\Theta'_i}(\mathcal{T}_{\mathcal{Q},k}), Y_k)$ using Eq. (4.3)\;
@@ -127,31 +128,31 @@ MLGNN的优化过程如下（参照 Algorithm \ref{Alg_1} 和式~(\ref{equ_12})�
     Compute meta-gradient $\nabla_\theta \mathcal{L}_{query\_total}$ (using $\Theta'_i(\Theta)$)\;
     $\nabla_\theta \mathcal{L}_{meta} \leftarrow \nabla_\theta \mathcal{L}_{meta} + \nabla_\theta \mathcal{L}_{query\_total}$\;
   }
-  $\theta \leftarrow \theta - \beta \cdot (\nabla_\theta \mathcal{L}_{meta} / B)$ \Comment*[r]{元更新 (B为批大小)}
+  $\theta \leftarrow \theta - \beta \cdot (\nabla_\theta \mathcal{L}_{meta} / B)$ \tcp*{元更新 (B为批大小)}
   Update $\beta$ (e.g., cosine annealing)\;
 }
 $\Theta^* \leftarrow \theta$\;
-\Return $\Theta^*$
 \end{algorithm}
 
-\begin{algorithm}[h]
+% ----- Replacement for Algorithm 4.2 (alg:meta_testing_angle) -----
+\begin{algorithm}[h!]
 \SetAlgoLined
 \DontPrintSemicolon
-\LinesNumbered
-\footnotesize
 \caption{面向角度变化的样本间关系挖掘元学习（元测试）}
 \label{alg:meta_testing_angle}
 \KwIn{元训练后的参数 $\Theta^*$, 新任务 $\mathcal{T}_{new} = (S_{new}, Q_{new})$ (含未见角度)}
 \KwOut{查询集 $Q_{new}$ 的预测标签 $Y_{pred}$}
+
 Build graph $G_{\mathcal{T}_{new}}$ from $S_{new} \cup Q_{new}$\;
 Initialize predictions $Y_{pred} = []$\;
 \For{each query sample $\overline{I}_q$ in $Q_{new}$}{
-  Compute output probabilities $P(Y_* = y_N | \mathcal{T}_{new})$ using $f_{\Theta^*}(G_{\mathcal{T}_{new}})$\; % 直接使用元参数进行预测
+  Compute output probabilities $P(Y_* = y_N | \mathcal{T}_{new})$ using $f_{\Theta^*}(G_{\mathcal{T}_{new}})$ \tcp*{直接使用元参数进行预测}
   $\hat{y}_q \leftarrow \arg\max_{y_N} P(Y_* = y_N | \mathcal{T}_{new})$\;
   Append $\hat{y}_q$ to $Y_{pred}$\;
 }
-\Return Predictions $Y_{pred}$
+\Return Predictions $Y_{pred}$\;
 \end{algorithm}
+
 这个框架通过GAF和CNN提取样本内结构信息，通过GNN挖掘样本间（特别是跨角度）关系信息，并通过MLGNN学习适应角度变化等任务差异的元知识，从而有望在小样本条件下实现对角度变化具有鲁棒性的HRRP识别。
 
 \section{实验设计及结果分析}

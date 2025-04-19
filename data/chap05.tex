@@ -112,58 +112,58 @@
 Algorithm~\ref{alg:adapter_training} 描述了适配器的训练过程。
 Algorithm~\ref{alg:fsl_testing_adapter} 描述了小样本识别（元测试）过程。
 
-\begin{algorithm}[h]
-\SetKwInput{KwIn}{Input}
-\SetKwInput{KwOut}{Output}
-\SetKw{KwInit}{Initialize}
-\SetKw{KwRepeat}{repeat}
-\SetKw{KwUntil}{until}
-\SetKw{KwFrozen}{Frozen}
-\SetKw{KwTrainable}{Trainable}
+% ----- Replacement for Algorithm 5.1 (alg:adapter_training) -----
+\begin{algorithm}[h!]
+\SetAlgoLined
+\DontPrintSemicolon
 \caption{CMSA-HRRP: 适配器对齐训练}
 \label{alg:adapter_training}
 \KwIn{基类别数据集 $\mathcal{D}_{\text{base}} = \{(x_{H,i}, y_i=c)\}$, 预计算好的语义特征 $\{z_{T,c}\}$, VLM $\Phi = (f_V, f_T)$ (参数 $\theta_V, \theta_T$), 学习率 $\eta_{Ad}$, 训练轮数 $E$}
 \KwOut{训练好的适配器参数 $\theta_{Ad}^*$}
-\KwInit{随机初始化适配器参数 $\theta_{Ad}$}
-\KwFrozen{VLM参数 $\theta_V, \theta_T$}
-\KwTrainable{适配器参数 $\theta_{Ad}$}
+
+\KwSty{Initialize} 随机初始化适配器参数 $\theta_{Ad}$\;
+\KwSty{Frozen} VLM参数 $\theta_V, \theta_T$\;
+\KwSty{Trainable} 适配器参数 $\theta_{Ad}$\;
+
 \For{$epoch = 1$ to $E$}{
     \For{each batch $\{(x_{H,i}, y_i=c)\}$ from $\mathcal{D}_{\text{base}}$}{
         $x_{\text{pseudo},i} \leftarrow h_{1D2D}(x_{H,i}; \theta_{Ad})$\;
         $z_{V,i} \leftarrow f_V(x_{\text{pseudo},i}; \theta_V)$\;
         $z_{V,i,\text{norm}} \leftarrow \text{normalize}(z_{V,i})$\;
-        $z_{T,i} \leftarrow z_{T,c}$ (retrieve corresponding semantic feature)\;
+        $z_{T,i} \leftarrow z_{T,c}$ \tcp*{retrieve corresponding semantic feature}
         $\mathcal{L}_{batch} \leftarrow 1 - \frac{1}{|batch|} \sum_i \cos(z_{V,i,\text{norm}}, z_{T,i})$\;
         Update $\theta_{Ad}$ using gradient descent: $\theta_{Ad} \leftarrow \theta_{Ad} - \eta_{Ad} \nabla_{\theta_{Ad}} \mathcal{L}_{batch}$\;
     }
 }
-\Return $\theta_{Ad}^*$
+\Return $\theta_{Ad}^*$\;
 \end{algorithm}
 
-\begin{algorithm}[h]
-\SetKwInput{KwIn}{Input}
-\SetKwInput{KwOut}{Output}
-\SetKw{KwFrozen}{Frozen}
+% ----- Replacement for Algorithm 5.2 (alg:fsl_testing_adapter) -----
+\begin{algorithm}[h!]
+\SetAlgoLined
+\DontPrintSemicolon
 \caption{CMSA-HRRP: 小样本识别 (元测试)}
 \label{alg:fsl_testing_adapter}
 \KwIn{新类别任务 $(\mathcal{S}, \mathcal{Q})$, 训练好的适配器 $\theta_{Ad}^*$, VLM $\Phi = (f_V, f_T)$, 预计算好的语义特征 $\{z_{T,c}\}$, 融合参数 $\kappa$, 温度 $\tau$, (可选)融合模块 $\theta_F$}
 \KwOut{查询样本 $x_{H,q} \in \mathcal{Q}$ 的预测标签 $\hat{y}_q$}
-\KwFrozen{参数 $\theta_{Ad}^*, \theta_V, \theta_T$, (可选) $\theta_F$}
-% Extract support features and compute prototypes
+
+\KwSty{Frozen} 参数 $\theta_{Ad}^*, \theta_V, \theta_T$, (可选) $\theta_F$\;
+
+\tcp{Extract support features and compute prototypes}
 \For{each class $c = 1$ to $N$}{
     Initialize $U_c = \mathbf{0}$, $R_c = \mathbf{0}$\;
     \For{each sample $(x_{H,i}, y_i=c)$ in $\mathcal{S}$}{
         $x_{\text{pseudo},i} \leftarrow h_{1D2D}(x_{H,i}; \theta_{Ad}^*)$\;
         $z_{V,i} \leftarrow \text{normalize}(f_V(x_{\text{pseudo},i}; \theta_V))$\;
         $U_c \leftarrow U_c + z_{V,i}$\;
-        \If{$\kappa > 0$}{
+        \uIf{$\kappa > 0$}{
             $z_{T,c} \leftarrow$ retrieve semantic feature for class $c$\;
             $r_{i,c} \leftarrow h_F([z_{V,i}; z_{T,c}]; \theta_F)$\;
             $R_c \leftarrow R_c + r_{i,c}$\;
         }
     }
     $u_c \leftarrow U_c / K$\;
-    \If{$\kappa > 0$}{
+    \uIf{$\kappa > 0$}{
         $r_c \leftarrow R_c / K$\;
         $p_c \leftarrow \kappa r_c + (1 - \kappa) u_c$\;
     }
@@ -171,12 +171,12 @@ Algorithm~\ref{alg:fsl_testing_adapter} 描述了小样本识别（元测试）�
         $p_c \leftarrow u_c$\;
     }
 }
-% Classify query sample
+\tcp{Classify query sample}
 $x_{\text{pseudo},q} \leftarrow h_{1D2D}(x_{H,q}; \theta_{Ad}^*)$\;
 $z_{V,q} \leftarrow \text{normalize}(f_V(x_{\text{pseudo},q}; \theta_V))$\;
 Compute probabilities $P(y_q = c | x_{H,q})$ using Eq.~(\ref{eq:classification_semantic}) with prototypes $p_c$ and similarity $d_{\text{sim}}$\;
 $\hat{y}_q \leftarrow \arg\max_c P(y_q = c | x_{H,q})$\;
-\Return $\hat{y}_q$
+\Return $\hat{y}_q$\;
 \end{algorithm}
 
 \section{实验设计及结果分析}

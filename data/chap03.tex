@@ -165,65 +165,76 @@ $f_{\text{CNN}}$ 通常包含几个卷积层、激活函数（如LeakyReLU）和
 
 在元训练阶段（算法~\ref{alg:meta_training}），模型通过在大量从基类别 $C_{base}$ 采样并可能加入不同噪声的模拟任务 $\mathcal{T}_i=(S_i, Q_i)$ 上进行学习，来优化元参数 $\theta$（包括CNN特征提取器、动态图注意力网络、GNN以及最终分类器的参数）。对于每个任务，首先基于共享的元参数 $\theta$ 初始化任务特定参数 $\theta_i^{(0)}$。然后，在内循环中，使用支持集 $S_i$ 进行 $U$ 步梯度更新，得到适应后的参数 $\theta_i^{(u)}$ ($u=1, \dots, U$)。在每一步更新中，需要根据当前节点特征计算动态图邻接矩阵 $\mathbf{A}^{\text{dyn}}$，并与静态矩阵 $\mathbf{A}^{\text{sta}}$ 融合得到 $\mathbf{A}^{\text{hybrid}}$，再进行归一化得到 $\hat{\mathbf{A}}$，然后通过GNN前向传播计算损失 $\mathcal{L}_{S_i}(\theta_i^{(u)})$，最后使用层级学习率 $\boldsymbol{\alpha}^{(u)}$ 更新参数。内循环结束后，在外循环中，计算查询集 $Q_i$ 在所有 $U$ 步适应后的参数下的加权损失 $\mathcal{L}_{\mathcal{T}_i}^{meta}$。最后，基于一批任务的平均元损失 $\sum_i \mathcal{L}_{\mathcal{T}_i}^{meta}$ 来计算元梯度 $\nabla_\theta (\sum_i \mathcal{L}_{\mathcal{T}_i}^{meta})$（可能使用一阶近似），并使用元学习率 $\beta$ 更新元参数 $\theta$。这个过程不断重复直到收敛。
 
-\begin{algorithm}[h!]
+% ----- Replacement for Algorithm 3.1 (alg:meta_training) -----
+\begin{algorithm}[h!] % algorithm2e uses algorithm* for spanning two columns
+\SetAlgoLined % Adds vertical lines for blocks (optional, remove if not desired)
+\DontPrintSemicolon % Suppress automatic semicolons at line ends
 \caption{HRRPGraphNet++ 元训练阶段}
 \label{alg:meta_training}
-\begin{algorithmic}[1]
-\Require 任务分布 $p(\mathcal{T})$，内循环学习率 $\boldsymbol{\alpha}^{(u)}$ ($u=0..U-1$)，元学习率 $\beta$，损失权重 $w_u$ ($u=1..U$)
-\State 初始化元参数 $\theta$
-\While{未收敛}
-    \State 采样一批任务 $\{\mathcal{T}_i = (S_i, Q_i)\}_{i=1}^{B_{task}} \sim p(\mathcal{T})$ \Comment{任务可能包含不同噪声水平}
-    \State 初始化元梯度 $\nabla_\theta L_{meta} = 0$
-    \For{每个任务 $\mathcal{T}_i$}
-        \State $\theta_i^{(0)} \leftarrow \theta$
-        \For{$u = 0$ to $U-1$} \Comment{内循环：任务适应}
-            \State 令 $\mathbf{p}_s \in S_i$
-            \State $\mathbf{H}^{(0)} \leftarrow f_{\text{CNN}}(\mathbf{p}_s; \theta_i^{(u)})$ \Comment{初始特征提取}
-            \State $\mathbf{A}^{\text{dyn}} \leftarrow \text{Attention}(\mathbf{H}^{(0)}; \theta_i^{(u)})$ \Comment{计算动态图}
-            \State $\mathbf{A}^{\text{hybrid}} \leftarrow \lambda \mathbf{A}^{\text{sta}} + (1-\lambda) \mathbf{A}^{\text{dyn}}$
-            \State $\hat{\mathbf{A}} \leftarrow \mathbf{D}^{-\frac{1}{2}} \mathbf{A}^{\text{hybrid}} \mathbf{D}^{-\frac{1}{2}}$
-            \State $\mathbf{z} \leftarrow \text{GNN}(\mathbf{H}^{(0)}, \hat{\mathbf{A}}; \theta_i^{(u)})$ \Comment{GNN表示学习与池化}
-            \State $\mathcal{L}_{S_i}(\theta_i^{(u)}) \leftarrow \text{Loss}( \text{Classifier}(\mathbf{z}; \theta_i^{(u)}), \text{labels}(S_i) )$
-            \State $\theta_i^{(u+1)} \leftarrow \theta_i^{(u)} - \boldsymbol{\alpha}^{(u)} \odot \nabla_{\theta_i^{(u)}} \mathcal{L}_{S_i}(\theta_i^{(u)})$ \Comment{使用任务级BN统计量}
-        \EndFor
-        \State 计算元损失 $\mathcal{L}_{\mathcal{T}_i}^{meta} = \sum_{u=1}^{U} w_u \mathcal{L}_{Q_i}(\theta_i^{(u)})$ \Comment{外循环：计算元损失}
-        \State 累加元梯度 $\nabla_\theta L_{meta} \leftarrow \nabla_\theta L_{meta} + \nabla_\theta \mathcal{L}_{\mathcal{T}_i}^{meta}$ \Comment{可能使用一阶近似}
-    \EndFor
-    \State 更新元参数 $\theta \leftarrow \theta - \beta \frac{1}{B_{task}} \nabla_\theta L_{meta}$ \Comment{元更新}
-\EndWhile
-\State \Return 优化后的元参数 $\theta^*$
-\end{algorithmic}
+\KwIn{任务分布 $p(\mathcal{T})$，内循环学习率 $\boldsymbol{\alpha}^{(u)}$ ($u=0..U-1$)，元学习率 $\beta$，损失权重 $w_u$ ($u=1..U$)}
+\KwOut{优化后的元参数 $\theta^*$}
+
+初始化元参数 $\theta$\;
+\While{未收敛}{
+    采样一批任务 $\{\mathcal{T}_i = (S_i, Q_i)\}_{i=1}^{B_{task}} \sim p(\mathcal{T})$ \tcp*{任务可能包含不同噪声水平}
+    初始化元梯度 $\nabla_\theta L_{meta} = 0$\;
+    \For{每个任务 $\mathcal{T}_i$}{
+        $\theta_i^{(0)} \leftarrow \theta$\;
+        \For{$u = 0$ to $U-1$}{
+            \tcp{内循环：任务适应}
+            令 $\mathbf{p}_s \in S_i$\;
+            $\mathbf{H}^{(0)} \leftarrow f_{\text{CNN}}(\mathbf{p}_s; \theta_i^{(u)})$ \tcp*{初始特征提取}
+            $\mathbf{A}^{\text{dyn}} \leftarrow \text{Attention}(\mathbf{H}^{(0)}; \theta_i^{(u)})$ \tcp*{计算动态图}
+            $\mathbf{A}^{\text{hybrid}} \leftarrow \lambda \mathbf{A}^{\text{sta}} + (1-\lambda) \mathbf{A}^{\text{dyn}}$\;
+            $\hat{\mathbf{A}} \leftarrow \mathbf{D}^{-\frac{1}{2}} \mathbf{A}^{\text{hybrid}} \mathbf{D}^{-\frac{1}{2}}$\;
+            $\mathbf{z} \leftarrow \text{GNN}(\mathbf{H}^{(0)}, \hat{\mathbf{A}}; \theta_i^{(u)})$ \tcp*{GNN表示学习与池化}
+            $\mathcal{L}_{S_i}(\theta_i^{(u)}) \leftarrow \text{Loss}( \text{Classifier}(\mathbf{z}; \theta_i^{(u)}), \text{labels}(S_i) )$\;
+            $\theta_i^{(u+1)} \leftarrow \theta_i^{(u)} - \boldsymbol{\alpha}^{(u)} \odot \nabla_{\theta_i^{(u)}} \mathcal{L}_{S_i}(\theta_i^{(u)})$ \tcp*{使用任务级BN统计量}
+        }
+        计算元损失 $\mathcal{L}_{\mathcal{T}_i}^{meta} = \sum_{u=1}^{U} w_u \mathcal{L}_{Q_i}(\theta_i^{(u)})$ \tcp*{外循环：计算元损失}
+        累加元梯度 $\nabla_\theta L_{meta} \leftarrow \nabla_\theta L_{meta} + \nabla_\theta \mathcal{L}_{\mathcal{T}_i}^{meta}$ \tcp*{可能使用一阶近似}
+    }
+    更新元参数 $\theta \leftarrow \theta - \beta \frac{1}{B_{task}} \nabla_\theta L_{meta}$ \tcp*{元更新}
+}
+$\theta^* \leftarrow \theta$\;
+\end{algorithm}
+
+% ----- Replacement for Algorithm 3.2 (alg:meta_testing) -----
+\begin{algorithm}[h!]
+\SetAlgoLined
+\DontPrintSemicolon
+\caption{HRRPGraphNet++ 元测试阶段}
+\label{alg:meta_testing}
+\KwIn{优化后的元参数 $\theta^*$, 新任务 $\mathcal{T}_{new} = (S_{new}, Q_{new})$}
+\KwOut{预测结果 $\{\hat{y}_q\}$ for all $\mathbf{p}_q \in Q_{new}$}
+
+$\theta_{new}^{(0)} \leftarrow \theta^*$ \tcp*{使用元参数初始化}
+\For{$u = 0$ to $U-1$}{
+    \tcp{任务适应}
+    令 $\mathbf{p}_s \in S_{new}$\;
+    $\mathbf{H}^{(0)} \leftarrow f_{\text{CNN}}(\mathbf{p}_s; \theta_{new}^{(u)})$\;
+    $\mathbf{A}^{\text{dyn}} \leftarrow \text{Attention}(\mathbf{H}^{(0)}; \theta_{new}^{(u)})$\;
+    $\mathbf{A}^{\text{hybrid}} \leftarrow \lambda \mathbf{A}^{\text{sta}} + (1-\lambda) \mathbf{A}^{\text{dyn}}$\;
+    $\hat{\mathbf{A}} \leftarrow \mathbf{D}^{-\frac{1}{2}} \mathbf{A}^{\text{hybrid}} \mathbf{D}^{-\frac{1}{2}}$\;
+    $\mathbf{z} \leftarrow \text{GNN}(\mathbf{H}^{(0)}, \hat{\mathbf{A}}; \theta_{new}^{(u)})$\;
+    $\mathcal{L}_{S_{new}}(\theta_{new}^{(u)}) \leftarrow \text{Loss}( \text{Classifier}(\mathbf{z}; \theta_{new}^{(u)}), \text{labels}(S_{new}) )$\;
+    $\theta_{new}^{(u+1)} \leftarrow \theta_{new}^{(u)} - \boldsymbol{\alpha}^{(u)} \odot \nabla_{\theta_{new}^{(u)}} \mathcal{L}_{S_{new}}(\theta_{new}^{(u)})$ \tcp*{使用任务级BN统计量}
+}
+\tcp{对查询样本进行预测}
+Initialize $Y_{pred} = []$\;
+\For{each $\mathbf{p}_q \in Q_{new}$}{
+    $\mathbf{H}_q^{(0)} \leftarrow f_{\text{CNN}}(\mathbf{p}_q; \theta_{new}^{(U)})$\;
+    $\mathbf{A}_q^{\text{dyn}} \leftarrow \text{Attention}(\mathbf{H}_q^{(0)}; \theta_{new}^{(U)})$\;
+    $\mathbf{A}_q^{\text{hybrid}} \leftarrow \lambda \mathbf{A}^{\text{sta}} + (1-\lambda) \mathbf{A}_q^{\text{dyn}}$\;
+    $\hat{\mathbf{A}}_q \leftarrow \mathbf{D}_q^{-\frac{1}{2}} \mathbf{A}_q^{\text{hybrid}} \mathbf{D}_q^{-\frac{1}{2}}$\;
+    $\mathbf{z}_q \leftarrow \text{GNN}(\mathbf{H}_q^{(0)}, \hat{\mathbf{A}}_q; \theta_{new}^{(U)})$\;
+    $\hat{y}_q \leftarrow \arg\max (\text{Classifier}(\mathbf{z}_q; \theta_{new}^{(U)}))$\;
+    Append $\hat{y}_q$ to $Y_{pred}$\;
+}
+\Return Predictions $Y_{pred}$\; % Use \Return for output
 \end{algorithm}
 
 在元测试阶段（算法~\ref{alg:meta_testing}），我们面对一个来自新类别 $C_{novel}$ 的新任务 $\mathcal{T}_{new} = (S_{new}, Q_{new})$。我们首先使用元训练得到的优化后的元参数 $\theta^*$ 来初始化模型 $\theta_{new}^{(0)}$。然后，完全按照元训练内循环的方式，使用新任务的支持集 $S_{new}$ 进行 $U$ 步梯度更新，得到针对该新任务适应后的参数 $\theta_{new}^{(U)}$。最后，使用适应后的模型 $f_{\theta_{new}^{(U)}}$ 对查询集 $Q_{new}$ 中的样本进行预测，得到识别结果 $\hat{y}_{query}$。这个过程模拟了模型在遇到新类别、只有少量样本的情况下快速学习并进行识别的能力。
-
-\begin{algorithm}[h!]
-\caption{HRRPGraphNet++ 元测试阶段}
-\label{alg:meta_testing}
-\begin{algorithmic}[1]
-\Require 优化后的元参数 $\theta^*$, 新任务 $\mathcal{T}_{new} = (S_{new}, Q_{new})$
-\State $\theta_{new}^{(0)} \leftarrow \theta^*$ \Comment{使用元参数初始化}
-\For{$u = 0$ to $U-1$} \Comment{任务适应}
-    \State 令 $\mathbf{p}_s \in S_{new}$
-    \State $\mathbf{H}^{(0)} \leftarrow f_{\text{CNN}}(\mathbf{p}_s; \theta_{new}^{(u)})$
-    \State $\mathbf{A}^{\text{dyn}} \leftarrow \text{Attention}(\mathbf{H}^{(0)}; \theta_{new}^{(u)})$
-    \State $\mathbf{A}^{\text{hybrid}} \leftarrow \lambda \mathbf{A}^{\text{sta}} + (1-\lambda) \mathbf{A}^{\text{dyn}}$
-    \State $\hat{\mathbf{A}} \leftarrow \mathbf{D}^{-\frac{1}{2}} \mathbf{A}^{\text{hybrid}} \mathbf{D}^{-\frac{1}{2}}$
-    \State $\mathbf{z} \leftarrow \text{GNN}(\mathbf{H}^{(0)}, \hat{\mathbf{A}}; \theta_{new}^{(u)})$
-    \State $\mathcal{L}_{S_{new}}(\theta_{new}^{(u)}) \leftarrow \text{Loss}( \text{Classifier}(\mathbf{z}; \theta_{new}^{(u)}), \text{labels}(S_{new}) )$
-    \State $\theta_{new}^{(u+1)} \leftarrow \theta_{new}^{(u)} - \boldsymbol{\alpha}^{(u)} \odot \nabla_{\theta_{new}^{(u)}} \mathcal{L}_{S_{new}}(\theta_{new}^{(u)})$ \Comment{使用任务级BN统计量}
-\EndFor
-\State \Comment{对查询样本进行预测}
-\State 令 $\mathbf{p}_q \in Q_{new}$
-\State $\mathbf{H}_q^{(0)} \leftarrow f_{\text{CNN}}(\mathbf{p}_q; \theta_{new}^{(U)})$
-\State $\mathbf{A}_q^{\text{dyn}} \leftarrow \text{Attention}(\mathbf{H}_q^{(0)}; \theta_{new}^{(U)})$
-\State $\mathbf{A}_q^{\text{hybrid}} \leftarrow \lambda \mathbf{A}^{\text{sta}} + (1-\lambda) \mathbf{A}_q^{\text{dyn}}$
-\State $\hat{\mathbf{A}}_q \leftarrow \mathbf{D}_q^{-\frac{1}{2}} \mathbf{A}_q^{\text{hybrid}} \mathbf{D}_q^{-\frac{1}{2}}$
-\State $\mathbf{z}_q \leftarrow \text{GNN}(\mathbf{H}_q^{(0)}, \hat{\mathbf{A}}_q; \theta_{new}^{(U)})$
-\State $\hat{y}_q \leftarrow \arg\max (\text{Classifier}(\mathbf{z}_q; \theta_{new}^{(U)}))$
-\State \Return 预测结果 $\{\hat{y}_q\}$ for all $\mathbf{p}_q \in Q_{new}$
-\end{algorithmic}
-\end{algorithm}
 
 \section{实验设计及结果分析}
 \label{sec:experiments}
