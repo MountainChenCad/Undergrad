@@ -33,14 +33,32 @@
 %5. 如果想生成盲评，传递anon即可，仍需修改个人成果部分
 % \documentclass[master,otf,anon]{nudtpaper}
 %
-\documentclass[doctor,ttf,twoside]{nudtpaper}
-\usepackage{mynudt}
+% ----- Ensure this section is clean -----
+\documentclass[doctor,ttf]{nudtpaper}
+\usepackage{mynudt} % This loads algorithm and algorithmic
 \usepackage{multirow,array,makecell}
-\usepackage[ruled,linesnumbered]{algorithm2e} % Use algorithm2e, ruled adds lines, linesnumbered adds numbers
 
-% Optional: Customize comment style for algorithm2e if needed
-\SetCommentSty{textit} % Example: Set comment text to italics
-\SetKwComment{Comment}{$\triangleright$\ }{} % Example: Use a triangle before comment
+\usepackage{titlesec} % 确保 titlesec 包已加载 (虽然 doctor.sty 加载了，但在这里明确写出无害)
+
+% 重新定义 section 格式，移除居中
+\titleformat{\section}
+  {\large\bfseries} % 标题文本格式 (移除 \filcenter)
+  {\thesection}    % 标签 (章节编号)
+  {1em}            % 标签和标题之间的距离
+  {}               % 标题之前的代码 (可选)
+  []               % 标题之后的代码 (可选)
+
+% 可能还需要重置一下间距，确保左缩进为0 (虽然 doctor.sty 里已经是0pt了)
+\titlespacing*{\section}
+  {0pt} % 左边距
+  {2ex} % 标题上方的垂直间距
+  {2ex} % 标题下方的垂直间距
+  
+% NO other \usepackage related to algorithm, algorithmic, algpseudocode, algorithm2e
+% NO \renewcommand{\algorithmiccomment}
+% NO \AtBeginEnvironment{algorithmic}
+% NO \SetKw... commands
+% NO manual redefinitions of \State etc.
 
 \classification{TP391}
 \serialno{1605xxxx}
@@ -50,7 +68,7 @@
 \displaytitle{基于元学习的小样本空天目标识别技术研究}
 \author{陈凌峰}
 \zhdate{\zhtoday}
-\entitle{Few-shot Automatic Aero Target Recogniton Based on Meta-Learning}
+\entitle{Few-shot Radar Automatic Aero Target Recogniton Based on Meta-Learning}
 \enauthor{Lingfeng Chen}
 \endate{\entoday}
 \subject{微电子科学与工程}
@@ -116,11 +134,11 @@
 \bibliographystyle{bstutf8}
 \bibliography{ref/refs}
 
-\input{data/resume}    %在学期间成果
-\input{data/reviewinfo} %公开评阅信息
+% \input{data/resume}    %在学期间成果
+% \input{data/reviewinfo} %公开评阅信息
 % 最后，需要的话还要生成附录，全文随之结束。
-\appendix
+% \appendix
 \backmatter
-\input{data/appendix01}
+% \input{data/appendix01}
 
 \end{document}

@@ -1,12 +1,14 @@
-\chapter{基于样本间关系挖掘的跨角度小样本HRRP元学习\\识别方法}
+\chapter[基于样本间关系挖掘的跨角度小样本HRRP元学习识别方法]{基于样本间关系挖掘的跨角度小样本HRRP元学习\protect\\ 识别方法}
 \label{chap:angle_robust}
 
 \section{引言}
 \label{sec:angle_intro}
 
-前两章系统地阐述了HRRP成像原理、深度学习RATR框架以及小样本学习的基本概念。特别地，第二章从物理层面揭示了HRRP对目标姿态角具有极端敏感性（式~(\ref{eq:hrrp_definition_complex})），即姿态角的微小变化可能导致HRRP形态发生剧烈、非线性的畸变。这种角度敏感性是基于HRRP进行RATR时面临的一个固有且核心的物理瓶颈，尤其是在小样本条件下，由于训练样本通常无法覆盖所有可能的姿态角，模型的跨角度泛化能力受到严重制约。第三章虽然提出了基于动态图元学习的方法来提升噪声鲁棒性，但其动态图构建主要基于样本自身特征，并未显式地考虑和利用不同角度样本之间的潜在关联信息来克服角度敏感性带来的挑战。
+在前两章中，我们探讨了HRRP的成像机理、基本特性以及基于深度学习的小样本RATR框架。第二章从物理层面揭示了HRRP对目标姿态角具有极端敏感性（式~(\ref{eq:hrrp_definition_complex})），这一特性是制约RATR性能的核心物理瓶颈。第三章虽然提出了基于动态图元学习的方法HRRPGraphNet++以提升噪声鲁棒性，但其动态图主要依据样本自身特征构建，并未显式地针对角度敏感性问题，通过挖掘不同角度样本间的潜在关联来提升跨角度泛化能力。在小样本条件下，训练数据通常仅覆盖稀疏、有限的角度范围，导致模型难以泛化到未见过的姿态角，识别性能急剧下降。如何克服HRRP的强角度敏感性，实现小样本条件下的宽角度范围可靠识别，是RATR领域亟待解决的关键问题。
 
-因此，本章聚焦于解决小样本HRRP识别中的角度敏感性问题，旨在提升模型在面对训练时未见过或样本稀疏的角度范围时的识别性能。我们提出一种新的思路，即通过显式地挖掘和利用小样本任务中不同角度HRRP样本之间的潜在关系信息，来指导模型的学习和推理。具体而言，我们认为即使HRRP随角度变化剧烈，但这种变化并非完全随机，而是蕴含着目标几何结构、散射机理以及角度连续性等方面的规律。通过将HRRP样本及其关系建模为图结构，并利用图神经网络（GNN）强大的关系推理能力，有望学习到对角度变化更鲁棒的特征表示。本章将详细阐述我们提出的面向角度变化的样本间关系挖掘元学习方法，该方法本质上是对我们在前文提出的GAF-MLGNN框架的一种新视角的解读和应用，强调其在处理角度敏感性方面的能力。我们将分析跨角度识别的挑战，介绍基于图结构的样本间关系表示方法，阐述适应角度变化的元学习任务设计与优化策略，并展示实验结果以验证方法的有效性。
+本章聚焦于小样本HRRP识别中的角度鲁棒性问题。针对现有方法在处理角度敏感性方面的不足，我们提出一种基于样本间关系挖掘的元学习识别方法GAF-MLGNN。该方法的核心思想是，不再将不同角度的HRRP样本视为孤立的数据点，而是显式地建模和利用它们之间蕴含的潜在关系信息。我们认为，即使HRRP随角度变化剧烈，其变化模式也并非完全随机，而是遵循一定的物理规律。通过将一个识别任务中的所有HRRP样本构建成一个图，并利用GNN强大的关系推理能力，模型有望学习到对角度变化更鲁棒的特征表示，并捕捉跨角度的关联。本章将详细阐述该方法，通过引入基于图结构的样本间关系表示和适应角度变化的元学习策略，构建一个能够有效应对HRRP角度敏感性挑战的小样本识别新框架。提升模型在小样本、宽角度范围下的识别性能，对于增强RATR系统在实际应用场景中的适应性和可靠性具有重要意义。
+
+本章的内容安排如下：第4.2节首先对跨角度HRRP识别面临的挑战进行分析，然后详细阐述基于图结构的样本间关系表示方法，并介绍适应角度变化的元学习任务设计与优化策略，以及样本内信息提取模块和整体框架流程；第4.3节基于仿真实验结果，从识别精度、跨角度泛化能力等维度对所提方法的有效性进行验证和分析；第4.4节对本章的研究内容进行总结。
 
 \section{面向角度变化的样本间关系挖掘元学习方法}
 \label{sec:angle_method}
@@ -58,6 +60,14 @@
 
 为了让模型学习适应角度变化，我们在构建这些基础任务 $\mathcal{T}$ 时需要考虑角度的多样性。一种策略是在采样 $N$ 个基类别后，从每个类别对应的 $D_{base}$ 中采样 $K$ 个支持样本和 $N_q$ 个查询样本时，确保这些样本覆盖一定的角度范围，或者包含不同角度区间的样本。例如，可以有意地让支持集和查询集来自不同的角度子集，以模拟跨角度识别的场景。即使是完全随机采样，只要 $D_{base}$ 中包含了足够宽的角度覆盖，那么采样出的大量任务自然会呈现出各种角度组合，从而迫使模型学习应对角度变化。
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{figures/mlgnn.pdf} % 使用与原文相同的图
+    % \fbox{图 3.1: 12类飞机HRRP样本示例 (占位符，同原文 Figure 2)}
+    \caption{MLGNN的优化、测试过程任务集划分示意图}
+    \label{fig:dataset_chap3}
+\end{figure}
+
 MLGNN的优化过程如下（参照 Algorithm \ref{Alg_1} 和式~(\ref{equ_12})至(\ref{equ_15})）：
 1.  内循环（Meta-Task Adaptation）: 对于一个元任务 $\mathbf{T}_i = (\mathcal{S}_{\mathcal{T},i}, \mathcal{Q}_{\mathcal{T},i})$，模型首先使用支持任务集 $\mathcal{S}_{\mathcal{T},i}$ 中的每个基础任务 $\mathcal{T}_{\mathcal{S},j}$ 来计算损失 $\mathcal{L}(f_{\Theta}(\mathcal{T}_{\mathcal{S},j}), Y_j)$（式~(\ref{equ_12})）。注意，这里的 $f_{\Theta}(\mathcal{T}_{\mathcal{S},j})$ 表示使用当前元参数 $\Theta$ 对任务 $\mathcal{T}_{\mathcal{S},j}$（构建图并运行GNN）进行前向传播得到查询样本的预测，并计算损失。然后，基于这些损失的梯度，对元参数 $\Theta$ 进行一步（或几步）更新，得到适应于这个支持任务集的参数 $\Theta'_i$：
     \begin{equation}
@@ -73,12 +83,20 @@ MLGNN的优化过程如下（参照 Algorithm \ref{Alg_1} 和式~(\ref{equ_12})�
     \end{equation}
     其中 $\beta$ 是元学习率。这个外循环的目标是找到一个最优的初始参数 $\Theta^*$，使得从该参数出发，经过基于支持任务集（可能包含各种角度组合）的内循环适应后，模型在新的查询任务（同样可能包含未见过的角度）上表现最好。
 
-通过这种方式，MLGNN框架促使模型（包括GNN的图构建和消息传递机制）学习到一种能够捕捉和利用样本间关系的、并且能够快速适应不同任务（包括角度变化带来的任务差异）的元知识。我们期望这种元知识能够有效地提升模型在小样本条件下的跨角度泛化能力。
+通过这种方式，MLGNN框架促使模型（包括GNN的图构建和消息传递机制）学习到一种能够捕捉和利用样本间关系的、并且能够快速适应不同任务（包括角度变化带来的任务差异）的元知识。MLGNN的思路和\cite{wang_hybrid_2019}类似，以一种优化和度量元学习混合的方法来学习元知识。我们期望这种元知识能够有效地提升模型在小样本条件下的跨角度泛化能力。
 
 \subsection{样本内信息提取模块}
 \label{subsec:intra_sample_module}
 
 在构建图结构和进行GNN消息传递之前，对每个HRRP样本进行有效的样本内信息提取至关重要。如前所述，我们采用GAF将一维HRRP序列转换为二维图像 $I$。这一步旨在利用二维图像处理中成熟的技术来捕捉HRRP内部的结构信息，并可能增强对角度变化的鲁棒性。随后，我们使用一个标准的二维卷积神经网络（2D-CNN）作为特征嵌入模块 $\phi$，将GAF图像 $I$ 映射为初始节点特征 $\mathbf{e}_i = \phi(I_i)$。我们实验中使用的CNN架构（称为Conv64F~\cite{ref33}）包含四个卷积块，每个块由卷积层、BN层、ReLU激活和最大池化层组成，所有卷积层使用64个滤波器（结构细节见图~\ref{Fig_6}）。这个CNN模块负责从GAF图像中提取具有判别力的视觉特征，作为后续GNN进行关系建模和推理的基础。其参数与GNN和MLP的参数一起通过MLGNN框架进行端到端的优化。GAF变换和CNN嵌入共同构成了我们的样本内信息提取模块。
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/gaf.pdf} % 使用与原文相同的图
+    % \fbox{图 3.1: 12类飞机HRRP样本示例 (占位符，同原文 Figure 2)}
+    \caption{HRRP-GAF生成原理}
+    \label{fig:dataset_chap3}
+\end{figure}
 
 \subsection{整体方法框架与算法流程}
 \label{subsec:overall_framework_angle}
@@ -94,63 +112,68 @@ MLGNN的优化过程如下（参照 Algorithm \ref{Alg_1} 和式~(\ref{equ_12})�
 5.  将查询节点的最终表示送入Softmax分类器得到预测结果。
 6.  整个模型（CNN $\phi$、MLP $\psi_{\tilde{\theta}}$、GNN层 $\theta^{(k)}$）的参数 $\Theta$ 通过MLGNN元学习框架（Algorithm \ref{Alg_1}, \ref{Alg_2}, 式~(\ref{equ_12})〜(\ref{equ_15})）进行优化，目标是学习一个能够快速适应包含角度变化的新任务的良好初始化。
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{figures/method2.pdf} % 使用与原文相同的图
+    % \fbox{图 3.1: 12类飞机HRRP样本示例 (占位符，同原文 Figure 2)}
+    \caption{所提GAF-MLGNN整体方法流程示意图}
+    \label{fig:dataset_chap3}
+\end{figure}
+
 % ----- Replacement for Algorithm 4.1 (alg:meta_training_angle) -----
-\begin{algorithm}[h!]
-\SetAlgoLined
-\DontPrintSemicolon
+\begin{algorithm}[htbp]
 \caption{面向角度变化的样本间关系挖掘元学习（元训练）}
 \label{alg:meta_training_angle}
-\KwIn{任务分布 $p(\mathcal{T})$ (包含不同角度样本), 内循环学习率 $\alpha$, 外循环学习率 $\beta$, 任务集大小 $C, C'$, GNN模型 $f_\Theta$ (含CNN $\phi$, MLP $\psi_{\tilde{\theta}}$, GNN层 $\theta^{(k)}$)}
-\KwOut{元训练后的参数 $\Theta^*$}
+\begin{algorithmic}[1]
+    \REQUIRE 任务分布 $p(\mathcal{T})$ (包含不同角度样本), 内循环学习率 $\alpha$, 外循环学习率 $\beta$, 任务集大小 $C, C'$, GNN模型 $f_\Theta$ (含CNN $\phi$, MLP $\psi_{\tilde{\theta}}$, GNN层 $\theta^{(k)}$)
+    \ENSURE 元训练后的参数 $\Theta^*$
+    \STATE 初始化元参数 $\Theta$
+    \WHILE{not converged}
+        \STATE Sample batch of meta-task sets $\mathbf{T}_i = (\mathcal{S}_{\mathcal{T},i}, \mathcal{Q}_{\mathcal{T},i})$ from $p(\mathcal{T})$
+        \STATE Initialize meta-gradient $\nabla_\theta \mathcal{L}_{meta} = 0$
+        \FOR{each meta-task set $\mathbf{T}_i$}
+            \STATE Initialize adapted parameters $\Theta'_i = \Theta$
+            %\STATE \Comment{内循环：适应支持任务集}
+            \STATE $\mathcal{L}_{support} = 0$
+            \FOR{each task $\mathcal{T}_{\mathcal{S},j} = (S_{\mathcal{S},j}, Q_{\mathcal{S},j})$ in $\mathcal{S}_{\mathcal{T},i}$}
+               \STATE Build graph $G_{\mathcal{T}_{\mathcal{S},j}}$ from $S_{\mathcal{S},j} \cup Q_{\mathcal{S},j}$
+               \STATE Compute loss $\mathcal{L}_j = \mathcal{L}(f_{\Theta}(\mathcal{T}_{\mathcal{S},j}), Y_j)$ using Eq. (4.3)
+               \STATE $\mathcal{L}_{support} \leftarrow \mathcal{L}_{support} + \mathcal{L}_j$
+            \ENDFOR
+            \STATE $\Theta'_i \leftarrow \Theta - \alpha \nabla_{\Theta} \mathcal{L}_{support}$ %\Comment{内循环参数适应}
 
-初始化元参数 $\Theta$\;
-\While{not converged}{
-  Sample batch of meta-task sets $\mathbf{T}_i = (\mathcal{S}_{\mathcal{T},i}, \mathcal{Q}_{\mathcal{T},i})$ from $p(\mathcal{T})$\;
-  Initialize meta-gradient $\nabla_\theta \mathcal{L}_{meta} = 0$\;
-  \For{each meta-task set $\mathbf{T}_i$}{
-    Initialize adapted parameters $\Theta'_i = \Theta$\;
-    \tcp{内循环：适应支持任务集}
-    $\mathcal{L}_{support} = 0$\;
-    \For{each task $\mathcal{T}_{\mathcal{S},j} = (S_{\mathcal{S},j}, Q_{\mathcal{S},j})$ in $\mathcal{S}_{\mathcal{T},i}$}{
-       Build graph $G_{\mathcal{T}_{\mathcal{S},j}}$ from $S_{\mathcal{S},j} \cup Q_{\mathcal{S},j}$\;
-       Compute loss $\mathcal{L}_j = \mathcal{L}(f_{\Theta}(\mathcal{T}_{\mathcal{S},j}), Y_j)$ using Eq. (4.3)\;
-       $\mathcal{L}_{support} \leftarrow \mathcal{L}_{support} + \mathcal{L}_j$\;
-    }
-    $\Theta'_i \leftarrow \Theta - \alpha \nabla_{\Theta} \mathcal{L}_{support}$ \tcp*{内循环参数适应}
-
-    \tcp{外循环：计算元梯度}
-    $\mathcal{L}_{query\_total} = 0$\;
-    \For{each task $\mathcal{T}_{\mathcal{Q},k} = (S_{\mathcal{Q},k}, Q_{\mathcal{Q},k})$ in $\mathcal{Q}_{\mathcal{T},i}$}{
-       Build graph $G_{\mathcal{T}_{\mathcal{Q},k}}$ from $S_{\mathcal{Q},k} \cup Q_{\mathcal{Q},k}$\;
-       Compute loss $\mathcal{L}_k' = \mathcal{L}(f_{\Theta'_i}(\mathcal{T}_{\mathcal{Q},k}), Y_k)$ using Eq. (4.3)\;
-       $\mathcal{L}_{query\_total} \leftarrow \mathcal{L}_{query\_total} + \mathcal{L}_k'$\;
-    }
-    Compute meta-gradient $\nabla_\theta \mathcal{L}_{query\_total}$ (using $\Theta'_i(\Theta)$)\;
-    $\nabla_\theta \mathcal{L}_{meta} \leftarrow \nabla_\theta \mathcal{L}_{meta} + \nabla_\theta \mathcal{L}_{query\_total}$\;
-  }
-  $\theta \leftarrow \theta - \beta \cdot (\nabla_\theta \mathcal{L}_{meta} / B)$ \tcp*{元更新 (B为批大小)}
-  Update $\beta$ (e.g., cosine annealing)\;
-}
-$\Theta^* \leftarrow \theta$\;
+            %\STATE \Comment{外循环：计算元梯度}
+            \STATE $\mathcal{L}_{query\_total} = 0$
+            \FOR{each task $\mathcal{T}_{\mathcal{Q},k} = (S_{\mathcal{Q},k}, Q_{\mathcal{Q},k})$ in $\mathcal{Q}_{\mathcal{T},i}$}
+               \STATE Build graph $G_{\mathcal{T}_{\mathcal{Q},k}}$ from $S_{\mathcal{Q},k} \cup Q_{\mathcal{Q},k}$
+               \STATE Compute loss $\mathcal{L}_k' = \mathcal{L}(f_{\Theta'_i}(\mathcal{T}_{\mathcal{Q},k}), Y_k)$ using Eq. (4.3)
+               \STATE $\mathcal{L}_{query\_total} \leftarrow \mathcal{L}_{query\_total} + \mathcal{L}_k'$
+            \ENDFOR
+            \STATE Compute meta-gradient $\nabla_\theta \mathcal{L}_{query\_total}$ (using $\Theta'_i(\Theta)$)
+            \STATE $\nabla_\theta \mathcal{L}_{meta} \leftarrow \nabla_\theta \mathcal{L}_{meta} + \nabla_\theta \mathcal{L}_{query\_total}$
+        \ENDFOR
+        \STATE $\theta \leftarrow \theta - \beta \cdot (\nabla_\theta \mathcal{L}_{meta} / B)$ %\Comment{元更新 (B为批大小)}
+        \STATE Update $\beta$ (e.g., cosine annealing)
+    \ENDWHILE
+    \STATE $\Theta^* \leftarrow \theta$
+\end{algorithmic}
 \end{algorithm}
 
 % ----- Replacement for Algorithm 4.2 (alg:meta_testing_angle) -----
-\begin{algorithm}[h!]
-\SetAlgoLined
-\DontPrintSemicolon
+\begin{algorithm}[htbp]
 \caption{面向角度变化的样本间关系挖掘元学习（元测试）}
 \label{alg:meta_testing_angle}
-\KwIn{元训练后的参数 $\Theta^*$, 新任务 $\mathcal{T}_{new} = (S_{new}, Q_{new})$ (含未见角度)}
-\KwOut{查询集 $Q_{new}$ 的预测标签 $Y_{pred}$}
-
-Build graph $G_{\mathcal{T}_{new}}$ from $S_{new} \cup Q_{new}$\;
-Initialize predictions $Y_{pred} = []$\;
-\For{each query sample $\overline{I}_q$ in $Q_{new}$}{
-  Compute output probabilities $P(Y_* = y_N | \mathcal{T}_{new})$ using $f_{\Theta^*}(G_{\mathcal{T}_{new}})$ \tcp*{直接使用元参数进行预测}
-  $\hat{y}_q \leftarrow \arg\max_{y_N} P(Y_* = y_N | \mathcal{T}_{new})$\;
-  Append $\hat{y}_q$ to $Y_{pred}$\;
-}
-\Return Predictions $Y_{pred}$\;
+\begin{algorithmic}[1]
+    \REQUIRE 元训练后的参数 $\Theta^*$, 新任务 $\mathcal{T}_{new} = (S_{new}, Q_{new})$ (含未见角度)
+    \ENSURE 查询集 $Q_{new}$ 的预测标签 $Y_{pred}$
+    \STATE Build graph $G_{\mathcal{T}_{new}}$ from $S_{new} \cup Q_{new}$
+    \STATE Initialize predictions $Y_{pred} = [~]$
+    \FOR{each query sample $\overline{I}_q$ in $Q_{new}$}
+        \STATE Compute output probabilities $P(Y_* = y_N | \mathcal{T}_{new})$ using $f_{\Theta^*}(G_{\mathcal{T}_{new}})$ %\Comment{直接使用元参数进行预测}
+        \STATE $\hat{y}_q \leftarrow \arg\max_{y_N} P(Y_* = y_N | \mathcal{T}_{new})$
+        \STATE Append $\hat{y}_q$ to $Y_{pred}$
+    \ENDFOR
+\end{algorithmic}
 \end{algorithm}
 
 这个框架通过GAF和CNN提取样本内结构信息，通过GNN挖掘样本间（特别是跨角度）关系信息，并通过MLGNN学习适应角度变化等任务差异的元知识，从而有望在小样本条件下实现对角度变化具有鲁棒性的HRRP识别。
@@ -160,9 +183,18 @@ Initialize predictions $Y_{pred} = []$\;
 
 为了验证我们提出的基于样本间关系挖掘的元学习方法在处理HRRP角度敏感性问题上的有效性，我们进行了一系列仿真实验。本节将介绍实验设置、数据集、评估指标、对比方法，并展示和分析实验结果。
 
+
+% --- 训练曲线图 ---
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/gaf_samples.pdf} % 使用与原文相同的图
+\caption{12}
+\label{Fig_10}
+\end{figure*}
+
 实验平台、实现细节、数据集（图~\ref{Fig_8} HRRP样本, 图~\ref{Fig_9} GAF图像）和评估指标（式~(\ref{equ_16})）与第三章3.3节所述基本一致。我们同样采用包含12类飞机目标的仿真数据集，划分6类为基类别，6类为新类别，进行 $N$-way $K$-shot 的小样本识别实验（主要关注 $N=4, 5, 6$ 和 $K=1, 2, 5$）。
 
-对比方法也与之前类似，包括：传统方法（PCA-SVM, Template Matcher），标准深度学习方法（CNN, LSTM），其他元学习方法（MAML, R2D2, ANIL, Meta-LSTM），其他度量学习方法（ProtoNet, DN4, RelationNet, CovaMNet, MN, Improved ProtoNet），以及基线GNN方法~\cite{ref42}。所有基于图像的方法都使用GAF图像作为输入，所有元学习和度量学习方法使用Conv64F作为骨干网络。
+对比方法也与之前类似，包括：传统方法（PCA-SVM\upcite{dong_radar_2024}, Template Matcher），标准深度学习方法（CNN, LSTM），其他元学习方法（MAML\upcite{finn_model-agnostic_2017}, R2D2, ANIL, Meta-LSTM），其他度量学习方法（ProtoNet\upcite{snell_prototypical_2017, tian_open_2022}, DN4, RelationNet, CovaMNet, MN\upcite{vinyals_matching_2016}, Improved ProtoNet\upcite{li_few-shot_2023}），以及基线GNN方法\upcite{ref42}。所有基于图像的方法都使用GAF图像作为输入，所有元学习和度量学习方法使用Conv64F作为主干网络。
 
 首先，我们比较了本方法（GAF-MLGNN）与其他方法在标准小样本识别任务上的性能。如表~\ref{compar_1_5_shot}所示，在所有 $N$-way $K$-shot 设置下，GAF-MLGNN均取得了最高的识别精度。例如，在最具挑战性的4-way 1-shot任务中，精度达到89.80，显著高于其他所有方法。同样，在5-way 1-shot和6-way 1-shot任务中，精度分别达到84.88和75.48。这表明，通过GNN挖掘样本间关系并结合MLGNN元学习策略，我们的方法能够更有效地从极少量样本中学习，其优越性可能部分归因于对HRRP内在结构和样本间关系（包括角度变化引起的关系）的更好建模。图~\ref{Fig_10}展示了训练过程中的精度曲线，也显示了本方法相比其他方法具有更快的收敛速度和更高的最终精度。
 
@@ -177,34 +209,25 @@ Initialize predictions $Y_{pred} = []$\;
 \cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} % Adjusted cmidrules
 && \textbf{1-shot} & \textbf{5-shot} & \textbf{1-shot} & \textbf{5-shot} & \textbf{1-shot} & \textbf{5-shot}\\ % Removed 2-shot headers
 \midrule
-ProtoNet\cite{ref34} & Metric  & 62.40 & 81.77 & 57.41 & 78.32 & 54.06 & 74.64\\
-DN4\cite{ref35} & Metric  & 70.60 & 89.82 &  63.49 & 88.12 & 61.96 & 85.56\\
-RelationNet\cite{ref36} & Metric  & 59.27 & 71.90 & 50.73 & 63.44 & 46.21 & 67.19\\
-CovaMNet\cite{ref37} & Metric  & 56.18 & 61.78 & 49.49 & 64.45 & 39.82 & 50.96\\
-MN\cite{ref56} & Metric  & 53.29 & 69.53 & 48.69 & 58.86 & 44.60 & 51.37\\
-\makecell{Improved \\ProtoNet\cite{ref57}} & Metric  & 69.63 & 82.90 & 57.23 & 77.84 & 53.40 & 76.17\\
+ProtoNet~\cite{snell_prototypical_2017} & Metric  & 62.40 & 81.77 & 57.41 & 78.32 & 54.06 & 74.64\\
+DN4~\cite{X} & Metric  & 70.60 & 89.82 &  63.49 & 88.12 & 61.96 & 85.56\\
+RelationNet~\cite{X} & Metric  & 59.27 & 71.90 & 50.73 & 63.44 & 46.21 & 67.19\\
+CovaMNet~\cite{X} & Metric  & 56.18 & 61.78 & 49.49 & 64.45 & 39.82 & 50.96\\
+MN~\cite{vinyals_matching_2016} & Metric  & 53.29 & 69.53 & 48.69 & 58.86 & 44.60 & 51.37\\
+\makecell{Improved \\ProtoNet~\cite{li_few-shot_2023}} & Metric  & 69.63 & 82.90 & 57.23 & 77.84 & 53.40 & 76.17\\
 \midrule
-R$2$D$2$\cite{ref31} & Meta & 69.58 & 91.27 & 65.29 & 85.32 & 55.43 & 85.38\\
-ANIL\cite{ref32} & Meta & 65.15 & 79.32 & 58.12 & 77.35 & 55.83 & 73.56\\
-MAML\cite{ref14} & Meta  & 66.35 & 81.83 & 58.60 & 78.55 & 55.54 & 71.78\\
-Meta-LSTM\cite{ref58} & Meta  & 61.18 & 83.10 & 65.42 & 84.42 & 52.97 & 79.96\\
+R2D2~\cite{X} & Meta & 69.58 & 91.27 & 65.29 & 85.32 & 55.43 & 85.38\\
+ANIL~\cite{X} & Meta & 65.15 & 79.32 & 58.12 & 77.35 & 55.83 & 73.56\\
+MAML~\cite{finn_model-agnostic_2017} & Meta  & 66.35 & 81.83 & 58.60 & 78.55 & 55.54 & 71.78\\
+Meta-LSTM~\cite{X} & Meta  & 61.18 & 83.10 & 65.42 & 84.42 & 52.97 & 79.96\\
 \midrule
-Baseline\cite{ref42} & Graph  & 78.00 & 84.42 & 65.42 & 84.42 & 64.20 & 82.19\\
+GNN~\cite{X} & Graph  & 78.00 & 84.42 & 65.42 & 84.42 & 64.20 & 82.19\\
 \textbf{Our GAF-MLGNN} & Graph  & \textbf{89.80} & \textbf{96.52} & \textbf{84.88} & \textbf{91.63} & \textbf{75.48} & \textbf{86.07}\\
 \bottomrule
-\end{tabularx}%} % 结束调整列间距 (如果使用)
+\end{tabularx}%
+} % 结束调整列间距 (如果使用)
 \label{compar_1_5_shot} % 更新标签以反映修改
-\noindent{\footnotesize{~\\The bolded values indicate the best recognition results.}}
 \end{table*}
-
-
-% --- 训练曲线图 ---
-\begin{figure*}[!h]
-\centering
-\includesvg[inkscapelatex=false, width=17.5cm]{fig10.svg}
-\caption{不同方法在不同小样本设置下的识别精度曲线 (与图3.2相同)}
-\label{Fig_10}
-\end{figure*}
 
 为了更直接地评估角度鲁棒性，我们进行了跨角度泛化实验（占位符）。在该实验中，我们使用特定角度范围（例如 $0^\circ \sim 30^\circ$）的HRRP样本来构建元训练任务，然后在另一个不相交的角度范围（例如 $30^\circ \sim 60^\circ$）的样本上构建元测试任务。表~\ref{tab:cross_angle_placeholder} 展示了本方法与其他方法在该设置下的性能对比。结果显示（预期），本方法（GAF-MLGNN）在跨角度泛化任务上相比其他方法表现出更小的性能下降，证明了其通过挖掘样本间关系学习到的表示对角度变化具有更好的鲁棒性。
 
@@ -231,26 +254,26 @@ Baseline\cite{ref42} & Graph  & 78.00 & 84.42 & 65.42 & 84.42 & 64.20 & 82.19\\
 
 % --- GNN层数影响表格 ---
 \begin{table}[h!]
-\caption{不同GNN层数对模型性能的影响 (与表4.1相同)}
+\caption{不同GNN层数对模型性能的影响}
 \centering
 \setlength{\tabcolsep}{1mm} % Adjust column spacing for better readability  spacing for better readability
 \begin{tabular}{cccccc}
 \toprule
 \textbf{Method} & \textbf{\makecell{Num. of\\ GNN Layers}} & \textbf{\makecell{4-way 1-shot \\Acc. (\%)}} & \textbf{\makecell{5-way 1-shot \\Acc. (\%)}} & \textbf{\makecell{6-way 1-shot \\Acc. (\%)}} \\
 \midrule
-Baseline\cite{ref42} & \multirow{2}{*}{2} & 78.00 & 65.42 & 64.20 \\
+GNN~\cite{X} & \multirow{2}{*}{2} & 78.00 & 65.42 & 64.20 \\
 \textbf{Our GAF-MLGNN}   &                      & 89.80 & \textbf{88.88} & 75.48 \\
 \midrule
-Baseline\cite{ref42} & \multirow{2}{*}{3} & 77.54 & 65.49 & 62.71 \\
+GNN~\cite{X} & \multirow{2}{*}{3} & 77.54 & 65.49 & 62.71 \\
 \textbf{Our GAF-MLGNN}   &                      & \textbf{90.02} & 85.08 & 75.12 \\
 \midrule
-Baseline\cite{ref42} & \multirow{2}{*}{4} & 78.06 & 66.50 & 63.10 \\
+GNN~\cite{X} & \multirow{2}{*}{4} & 78.06 & 66.50 & 63.10 \\
 \textbf{Our GAF-MLGNN}   &                      & 89.21 & 85.06 & \textbf{76.22} \\
 \midrule
-Baseline\cite{ref42} & \multirow{2}{*}{5} & 77.45 & 65.30 & 63.56 \\
+GNN~\cite{X} & \multirow{2}{*}{5} & 77.45 & 65.30 & 63.56 \\
 \textbf{Our GAF-MLGNN}   &                      & 89.18 & 84.94 & 75.83 \\
 \midrule
-Baseline\cite{ref42} & \multirow{2}{*}{6} & 77.96 & 65.98 & 64.07 \\
+GNN~\cite{X} & \multirow{2}{*}{6} & 77.96 & 65.98 & 64.07 \\
 \textbf{Our GAF-MLGNN}   &                      & 89.84 & 84.36 & 75.78 \\
 \bottomrule
 \end{tabular}
@@ -261,53 +284,60 @@ Baseline\cite{ref42} & \multirow{2}{*}{6} & 77.96 & 65.98 & 64.07 \\
 
 % --- 训练样本数影响表格 ---
 \begin{table}[h!]
-\caption{不同元训练样本数对模型性能的影响 (与表4.2相同)}
+\caption{不同元训练样本数对模型性能的影响}
 \centering
 \setlength{\tabcolsep}{1mm} % Adjust column spacing for better readability  spacing for better readability
 \begin{tabular}{cccccc}
 \toprule
 \textbf{Method} & \textbf{\makecell{Num. of\\ ~~~Samples~~}} & \textbf{\makecell{4-way 1-shot \\Acc. (\%)}} & \textbf{\makecell{5-way 1-shot \\Acc. (\%)}} & \textbf{\makecell{6-way 1-shot \\Acc. (\%)}} \\
 \midrule
-Baseline\cite{ref42}   & \multirow{2}{*}{1200}  & 78.00 & 65.42 & 64.20 \\
+GNN~\cite{X}   & \multirow{2}{*}{1200}  & 78.00 & 65.42 & 64.20 \\
 \textbf{Our GAF-MLGNN}   &   & \textbf{89.80} & \textbf{84.88} & \textbf{75.48} \\
 \midrule
-Baseline\cite{ref42}   & \multirow{2}{*}{900}  & 77.52 & 65.03 & 63.13 \\
+GNN~\cite{X}   & \multirow{2}{*}{900}  & 77.52 & 65.03 & 63.13 \\
 \textbf{Our GAF-MLGNN}   &   & 89.15 & 84.59 & 74.59 \\
 \midrule
-Baseline\cite{ref42}   & \multirow{2}{*}{600}  & 77.62 & 65.14 & 62.16 \\
+GNN~\cite{X}   & \multirow{2}{*}{600}  & 77.62 & 65.14 & 62.16 \\
 \textbf{Our GAF-MLGNN}   &   & 88.56 & 84.71 & 75.20 \\
 \midrule
-Baseline\cite{ref42}   & \multirow{2}{*}{300}  & 74.66 & 62.99 & 59.56 \\
+GNN~\cite{X}   & \multirow{2}{*}{300}  & 74.66 & 62.99 & 59.56 \\
 \textbf{Our GAF-MLGNN}   &   & 87.67 & 80.36 & 73.97 \\
 \midrule
-Baseline\cite{ref42}   & \multirow{2}{*}{100}  & 72.76 & 60.30 & 57.57 \\
+GNN~\cite{X}   & \multirow{2}{*}{100}  & 72.76 & 60.30 & 57.57 \\
 \textbf{Our GAF-MLGNN}   &   & 86.75 & 79.07 & 73.38 \\
 \bottomrule
 \end{tabular}
 \label{table_train_samples_angle}
 \end{table}
 
-最后，我们比较了使用GAF图像输入与直接使用HRRP序列输入的性能，结果如表~\ref{table_gaf_effect_angle}所示（与第三章表4.3相同）。使用GAF图像作为输入显著提高了识别精度（例如，在5-way 1-shot下提升了7.21%），证实了GAF变换在提取对识别（可能包括对角度变化鲁棒的）有效的样本内信息方面的作用。
+最后，我们比较了使用GAF图像输入与直接使用HRRP序列输入的性能，结果如表~\ref{table_gaf_effect_angle}所示（与第三章表4.3相同）。使用GAF图像作为输入显著提高了识别精度（例如，在5-way 1-shot下提升了7.21\%），证实了GAF变换在提取对识别（可能包括对角度变化鲁棒的）有效的样本内信息方面的作用。
 
 % --- GAF效果表格 ---
 \begin{table}[h!]
-\caption{GAF技术对模型性能的影响 (与表4.3相同)}
+\caption{GAF技术对模型性能的影响}
 \centering
 \setlength{\tabcolsep}{1mm}
 \begin{tabular}{ccccc}
 \toprule
 \textbf{Method} & \textbf{Input} & \textbf{\makecell{4-way 1-shot\\ Acc. (\%)}} & \textbf{\makecell{5-way 1-shot\\ Acc. (\%)}} & \textbf{\makecell{6-way 1-shot\\ Acc. (\%)}} \\
 \midrule
-Baseline\cite{ref42}   & \multirow{2}{*}{\makecell{HRRP\\~~sequences~~}}  & 81.13 & 74.82 & 66.91 \\
+GNN~\cite{X}   & \multirow{2}{*}{\makecell{HRRP\\~~sequences~~}}  & 81.13 & 74.82 & 66.91 \\
 \textbf{Our GAF-MLGNN}   &   & 91.21 & 84.42 & 82.19 \\
 \midrule
-Baseline\cite{ref42}   & \multirow{2}{*}{\makecell{GAF\\images}}  & 89.70 & 84.36 & 81.07 \\
+GNN~\cite{X}   & \multirow{2}{*}{\makecell{GAF\\images}}  & 89.70 & 84.36 & 81.07 \\
 \textbf{Our GAF-MLGNN}   &   & \textbf{96.52} & \textbf{91.63} & \textbf{86.08} \\
 \bottomrule
 \end{tabular}
 \label{table_gaf_effect_angle}
 \end{table}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/gaf_abla.pdf} % 使用与原文相同的图
+    % \fbox{图 3.1: 12类飞机HRRP样本示例 (占位符，同原文 Figure 2)}
+    \caption{GAF技术对模型训练的影响}
+    \label{fig:dataset_chap3}
+\end{figure}
 
 综上所述，实验结果验证了我们提出的基于样本间关系挖掘的元学习方法（GAF-MLGNN）在小样本HRRP识别任务中，尤其是在应对角度敏感性挑战方面的有效性。通过结合GAF提取样本内信息、GNN挖掘样本间关系以及MLGNN优化学习策略，该方法显著提升了识别精度和跨角度泛化能力。
 
