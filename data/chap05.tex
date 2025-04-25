@@ -110,10 +110,10 @@ $\kappa$ 控制了语义精炼的程度。当 $\kappa=0$ 时，仅使用基础�
  
  % --- 主要结果表格 (保持不变) --- 
  \begin{table}[h!] \centering \caption{小样本HRRP识别精度 (\%) 对比} \label{tab:main_results_adapter_semantic} \resizebox{\linewidth}{!}{% 
- \begin{tabular}{lccccc} \toprule \textbf{Method} & Backbone & \multicolumn{2}{c}{\textbf{SimHRRP}} & \multicolumn{2}{c}{\textbf{RealHRRP}} \\ \cmidrule(lr){3-4} \cmidrule(lr){5-6} & & \textbf{5-way 1-shot} & \textbf{5-way 5-shot} & \textbf{5-way 1-shot} & \textbf{5-way 5-shot} \\ \midrule ProtoNet~\cite{tian_open_2022} & 1D-CNN & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX \\ DN4~\cite{X} & 1D-CNN & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX \\ 
+ \begin{tabular}{lccccc} \toprule \textbf{Method} & Backbone & \multicolumn{2}{c}{\textbf{SimHRRP}} & \multicolumn{2}{c}{\textbf{RealHRRP}} \\ \cmidrule(lr){3-4} \cmidrule(lr){5-6} & & \textbf{3-way 2-shot} & \textbf{3-way 10-shot} & \textbf{3-way 1-shot} & \textbf{3-way 5-shot} \\ \midrule ProtoNet~\cite{tian_open_2022} & 1D-CNN & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX \\ DN4~\cite{X} & 1D-CNN & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX \\ 
  MAML~\cite{X} & 1D-CNN & 58.60 $\pm$ X.XX & 78.55 $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX \\
  MN~\cite{X} & 1D-CNN & 48.69 $\pm$ X.XX & 58.86 $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX \\ \midrule
- \textbf{SHARP (Ours)} & ResNet50 & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX & XX.XX $\pm$ X.XX \\ \textbf{SHARP (Ours)} & ViT-B/32 & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} \\ \textbf{SHARP (Ours)} & ViT-L/14 & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} \\
+ \textbf{SHARP (Ours)} & ResNet50 & 62.72 $\pm$ 0.95 & 72.35 $\pm$ 0.64 & {57.91 $\pm$ 1.06} & {69.34 $\pm$ 0.75} \\ {SHARP (Ours)} & ViT-B/32 & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} \\ \textbf{SHARP (Ours)} & ViT-L/14 & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} & \textbf{XX.XX $\pm$ X.XX} \\
  \bottomrule \end{tabular} } % End resizebox 
  \end{table} \captionsetup{skip=5pt} 
  

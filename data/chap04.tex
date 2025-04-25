@@ -4,7 +4,7 @@
 \section{引言}
 \label{sec:angle_intro}
 
-在前两章中，我们探讨了HRRP的成像机理、基本特性以及基于深度学习的小样本RATR框架。第二章从物理层面揭示了HRRP对目标姿态角具有极端敏感性（式~(\ref{eq:hrrp_definition_complex})），这一特性是制约RATR性能的核心物理瓶颈。第三章虽然提出了基于动态图元学习的方法HRRPGraphNet++以提升噪声鲁棒性，但其动态图主要依据样本自身特征构建，并未显式地针对角度敏感性问题，通过挖掘不同角度样本间的潜在关联来提升跨角度泛化能力。在小样本条件下，训练数据通常仅覆盖稀疏、有限的角度范围，导致模型难以泛化到未见过的姿态角，识别性能急剧下降。如何克服HRRP的强角度敏感性，实现小样本条件下的宽角度范围可靠识别，是RATR领域亟待解决的关键问题。
+在前两章中，我们探讨了HRRP的成像机理、基本特性以及基于深度学习的小样本RATR框架。第二章从物理层面揭示了HRRP对目标姿态角具有极端敏感性，这一特性是制约RATR性能的核心物理瓶颈。第三章虽然提出了基于动态图元学习的方法HRRPGraphNet++以提升噪声鲁棒性，但其动态图主要依据样本自身特征构建，并未显式地针对角度敏感性问题，通过挖掘不同角度样本间的潜在关联来提升跨角度泛化能力。在小样本条件下，训练数据通常仅覆盖稀疏、有限的角度范围，导致模型难以泛化到未见过的姿态角，识别性能急剧下降。如何克服HRRP的强角度敏感性，实现小样本条件下的宽角度范围可靠识别，是RATR领域亟待解决的关键问题。
 
 本章聚焦于小样本HRRP识别中的角度鲁棒性问题。针对现有方法在处理角度敏感性方面的不足，我们提出一种基于样本间关系挖掘的元学习识别方法GAF-MLGNN。该方法的核心思想是，不再将不同角度的HRRP样本视为孤立的数据点，而是显式地建模和利用它们之间蕴含的潜在关系信息。我们认为，即使HRRP随角度变化剧烈，其变化模式也并非完全随机，而是遵循一定的物理规律。通过将一个识别任务中的所有HRRP样本构建成一个图，并利用GNN强大的关系推理能力，模型有望学习到对角度变化更鲁棒的特征表示，并捕捉跨角度的关联。本章将详细阐述该方法，通过引入基于图结构的样本间关系表示和适应角度变化的元学习策略，构建一个能够有效应对HRRP角度敏感性挑战的小样本识别新框架。提升模型在小样本、宽角度范围下的识别性能，对于增强RATR系统在实际应用场景中的适应性和可靠性具有重要意义。
 
@@ -13,7 +13,7 @@
 \section{面向角度变化的样本间关系挖掘元学习方法}
 \label{sec:angle_method}
 
-本节详细阐述我们提出的面向角度变化的样本间关系挖掘元学习方法。首先分析跨角度HRRP识别面临的核心挑战。然后，介绍如何利用图结构来表示和挖掘样本间的关系，特别是在角度维度上的关系。接着，阐述如何设计元学习任务和优化策略以适应角度变化。之后，讨论用于提取样本内信息的模块。最后给出整体框架和算法流程。
+本节详细阐述我们提出的面向角度变化的样本间关系挖掘元学习方法。首先分析跨角度HRRP识别面临的核心挑战。然后，介绍如何利用图结构来表示和挖掘样本间的关系，特别是在角度维度上的关系。接着，阐述如何设计元学习任务和优化策略以适应角度变化。之后，讨论用于提取样本内信息的编码技术。最后给出整体框架和算法流程。
 
 \subsection{跨角度HRRP识别的挑战分析}
 \label{subsec:angle_challenge_analysis}
@@ -135,8 +135,8 @@ MLGNN的优化过程如下（参照 Algorithm \ref{Alg_1} 和式~(\ref{equ_12})�
             \STATE Initialize adapted parameters $\Theta'_i = \Theta$
             %\STATE \Comment{内循环：适应支持任务集}
             \STATE $\mathcal{L}_{support} = 0$
-            \FOR{each task $\mathcal{T}_{\mathcal{S},j} = (S_{\mathcal{S},j}, Q_{\mathcal{S},j})$ in $\mathcal{S}_{\mathcal{T},i}$}
-               \STATE Build graph $G_{\mathcal{T}_{\mathcal{S},j}}$ from $S_{\mathcal{S},j} \cup Q_{\mathcal{S},j}$
+            \FOR{each task $\mathcal{T}_{\mathcal{S},j} = (\mathcal{S}_{\mathcal{S},j}, \mathcal{Q}_{\mathcal{S},j})$ in $\mathcal{S}_{\mathcal{T},i}$}
+               \STATE Build graph $G_{\mathcal{T}_{\mathcal{S},j}}$ from $\mathcal{S}_{\mathcal{S},j} \cup \mathcal{Q}_{\mathcal{S},j}$
                \STATE Compute loss $\mathcal{L}_j = \mathcal{L}(f_{\Theta}(\mathcal{T}_{\mathcal{S},j}), Y_j)$ using Eq. (4.3)
                \STATE $\mathcal{L}_{support} \leftarrow \mathcal{L}_{support} + \mathcal{L}_j$
             \ENDFOR
@@ -144,8 +144,8 @@ MLGNN的优化过程如下（参照 Algorithm \ref{Alg_1} 和式~(\ref{equ_12})�
 
             %\STATE \Comment{外循环：计算元梯度}
             \STATE $\mathcal{L}_{query\_total} = 0$
-            \FOR{each task $\mathcal{T}_{\mathcal{Q},k} = (S_{\mathcal{Q},k}, Q_{\mathcal{Q},k})$ in $\mathcal{Q}_{\mathcal{T},i}$}
-               \STATE Build graph $G_{\mathcal{T}_{\mathcal{Q},k}}$ from $S_{\mathcal{Q},k} \cup Q_{\mathcal{Q},k}$
+            \FOR{each task $\mathcal{T}_{\mathcal{Q},k} = (\mathcal{S}_{\mathcal{Q},k}, \mathcal{Q}_{\mathcal{Q},k})$ in $\mathcal{Q}_{\mathcal{T},i}$}
+               \STATE Build graph $G_{\mathcal{T}_{\mathcal{Q},k}}$ from $\mathcal{S}_{\mathcal{Q},k} \cup \mathcal{Q}_{\mathcal{Q},k}$
                \STATE Compute loss $\mathcal{L}_k' = \mathcal{L}(f_{\Theta'_i}(\mathcal{T}_{\mathcal{Q},k}), Y_k)$ using Eq. (4.3)
                \STATE $\mathcal{L}_{query\_total} \leftarrow \mathcal{L}_{query\_total} + \mathcal{L}_k'$
             \ENDFOR
@@ -164,11 +164,11 @@ MLGNN的优化过程如下（参照 Algorithm \ref{Alg_1} 和式~(\ref{equ_12})�
 \caption{面向角度变化的样本间关系挖掘元学习（元测试）}
 \label{alg:meta_testing_angle}
 \begin{algorithmic}[1]
-    \REQUIRE 元训练后的参数 $\Theta^*$, 新任务 $\mathcal{T}_{new} = (S_{new}, Q_{new})$ (含未见角度)
-    \ENSURE 查询集 $Q_{new}$ 的预测标签 $Y_{pred}$
-    \STATE Build graph $G_{\mathcal{T}_{new}}$ from $S_{new} \cup Q_{new}$
+    \REQUIRE 元训练后的参数 $\Theta^*$, 新任务 $\mathcal{T}_{new} = (\mathcal{S}_{new}, \mathcal{Q}_{new})$ (含未见角度)
+    \ENSURE 查询集 $\mathcal{Q}_{new}$ 的预测标签 $Y_{pred}$
+    \STATE Build graph $G_{\mathcal{T}_{new}}$ from $\mathcal{S}_{new} \cup \mathcal{Q}_{new}$
     \STATE Initialize predictions $Y_{pred} = [~]$
-    \FOR{each query sample $\overline{I}_q$ in $Q_{new}$}
+    \FOR{each query sample $\overline{I}_q$ in $\mathcal{Q}_{new}$}
         \STATE Compute output probabilities $P(Y_* = y_N | \mathcal{T}_{new})$ using $f_{\Theta^*}(G_{\mathcal{T}_{new}})$ %\Comment{直接使用元参数进行预测}
         \STATE $\hat{y}_q \leftarrow \arg\max_{y_N} P(Y_* = y_N | \mathcal{T}_{new})$
         \STATE Append $\hat{y}_q$ to $Y_{pred}$
@@ -187,7 +187,7 @@ MLGNN的优化过程如下（参照 Algorithm \ref{Alg_1} 和式~(\ref{equ_12})�
 % --- 训练曲线图 ---
 \begin{figure*}[!h]
 \centering
-\includegraphics[width=0.95\linewidth]{figures/gaf_samples.pdf} % 使用与原文相同的图
+\includegraphics[width=0.75\linewidth]{figures/gaf_samples.pdf} % 使用与原文相同的图
 \caption{12}
 \label{Fig_10}
 \end{figure*}

@@ -99,10 +99,10 @@ HRRP通常定义为脉冲压缩后输出信号的幅度（或功率）沿距离�
 
 为了在高频区对目标的散射特性进行建模和分析，散射中心模型被广泛应用\upcite{liu_scnet_2024, Gerry19991179, Potter19951058, KELLER1962116, Hurst1987986}。该模型将目标的总散射场近似为来自目标上有限个离散的等效散射中心的贡献的相干叠加。属性散射中心模型（Attributed Scattering Center Model，ASCM）是其中一种常用模型\upcite{Potter199779}，它不仅给出了散射中心的位置，还描述了其散射强度随频率和角度变化的特性。根据ASCM，第 $i$ 个散射中心对总散射场 $E_s$ 的贡献 $E_i$ 可以表示为频率 $f$ 和视线向量 $\hat{\mathbf{k}}$ 的函数：
 \begin{equation}
-    E_i(f, \hat{\mathbf{k}}) \approx A_i(\text{pol}) \left(\frac{j f}{f_{ref}}\right)^{\alpha_i} S_i(f, \hat{\mathbf{k}}) \exp\left(-j \frac{4\pi f}{c} \mathbf{r}_i \cdot \hat{\mathbf{k}}\right)
+    E_i(f, \hat{\mathbf{k}}) \approx A_i(\text{pol}) \left(\frac{j f}{f_{ref}}\right)^{\alpha_i} \mathcal{S}_i(f, \hat{\mathbf{k}}) \exp\left(-j \frac{4\pi f}{c} \mathbf{r}_i \cdot \hat{\mathbf{k}}\right)
     \label{eq:ascm}
 \end{equation}
-在此式中，$A_i(\text{pol})$ 是第 $i$ 个散射中心在参考频率 $f_{ref}$ 和特定极化下的复幅度。$\alpha_i$ 是频率依赖因子，描述了散射幅度随频率的变化关系，其取值与散射机制类型有关（例如，$\alpha_i=1$ 对应镜面反射，$\alpha_i=0$ 对应边缘绕射）。$S_i(f, \hat{\mathbf{k}})$ 是角度依赖因子，描述散射强度随观测角度的变化。对于局部化散射中心，$S_i \approx 1$；对于分布式散射中心（如长直边缘），$S_i$ 可能具有 $\text{sinc}$ 函数形式。$\mathbf{r}_i$ 是第 $i$ 个散射中心的位置向量。$\exp(-j \frac{4\pi f}{c} \mathbf{r}_i \cdot \hat{\mathbf{k}})$ 是由位置决定的相位项，其中 $\mathbf{r}_i \cdot \hat{\mathbf{k}} = R_i$ 即为该散射中心沿视线的投影距离。将式~(\ref{eq:ascm})代入宽带回波模型并进行脉冲压缩，即可得到基于散射中心模型的HRRP表达式。可以看出，HRRP的形态直接由各散射中心的位置 $\mathbf{r}_i$、类型 $\alpha_i$、强度 $A_i$ 以及它们随频率 $f$ 和视线 $\hat{\mathbf{k}}$ 的变化规律 $S_i$ 共同决定。当姿态角 $(\theta, \phi)$ 变化时，$\hat{\mathbf{k}}$ 改变，导致相位项中的投影距离 $R_i$、角度依赖因子 $S_i$ 以及可能的幅度 $A_i$ 都发生变化，进而造成HRRP形态的剧烈改变。这进一步从物理模型层面印证了HRRP的角度敏感性。
+在此式中，$A_i(\text{pol})$ 是第 $i$ 个散射中心在参考频率 $f_{ref}$ 和特定极化下的复幅度。$\alpha_i$ 是频率依赖因子，描述了散射幅度随频率的变化关系，其取值与散射机制类型有关（例如，$\alpha_i=1$ 对应镜面反射，$\alpha_i=0$ 对应边缘绕射）。$\mathcal{S}_i(f, \hat{\mathbf{k}})$ 是角度依赖因子，描述散射强度随观测角度的变化。对于局部化散射中心，$\mathcal{S}_i \approx 1$；对于分布式散射中心（如长直边缘），$\mathcal{S}_i$ 可能具有 $\text{sinc}$ 函数形式。$\mathbf{r}_i$ 是第 $i$ 个散射中心的位置向量。$\exp(-j \frac{4\pi f}{c} \mathbf{r}_i \cdot \hat{\mathbf{k}})$ 是由位置决定的相位项，其中 $\mathbf{r}_i \cdot \hat{\mathbf{k}} = R_i$ 即为该散射中心沿视线的投影距离。将式~(\ref{eq:ascm})代入宽带回波模型并进行脉冲压缩，即可得到基于散射中心模型的HRRP表达式。可以看出，HRRP的形态直接由各散射中心的位置 $\mathbf{r}_i$、类型 $\alpha_i$、强度 $A_i$ 以及它们随频率 $f$ 和视线 $\hat{\mathbf{k}}$ 的变化规律 $\mathcal{S}_i$ 共同决定。当姿态角 $(\theta, \phi)$ 变化时，$\hat{\mathbf{k}}$ 改变，导致相位项中的投影距离 $R_i$、角度依赖因子 $\mathcal{S}_i$ 以及可能的幅度 $A_i$ 都发生变化，进而造成HRRP形态的剧烈改变。这进一步从物理模型层面印证了HRRP的角度敏感性。
 
 需要指出的是，除了HRRP所反映的目标沿雷达视线的静态散射结构信息外，目标的部件级运动（即微动），例如飞机涡轮发动机叶片的旋转、直升机旋翼的转动、导弹弹体的进动或章动等，也会在雷达回波中引入除主体平动多普勒之外的附加频率调制，产生微多普勒效应\upcite{gurbuz_data-driven_2018}。这些微多普勒特征蕴含了关于目标内部结构和运行状态的独特动态信息，是目标识别的另一类重要信息来源，尤其对于区分外形相似但内部运动部件不同的目标具有关键作用。然而，微多普勒特征的提取与分析通常依赖于时频分析技术\upcite{yu_local_2019, huang_parameterized_2021, chithra_comprehensive_2023}，这与本研究关注的、主要基于脉冲压缩后HRRP幅度信息的识别方法在信号处理层面和特征维度上均有显著不同。鉴于本论文聚焦于解决小样本条件下HRRP识别所面临的噪声鲁棒性与角度敏感性等核心挑战，对微多普勒特征的深入研究与利用将不作为本文探讨的重点，后续章节将集中讨论基于HRRP本身及其衍生特征的识别方法。
 
@@ -118,7 +118,7 @@ HRRP通常定义为脉冲压缩后输出信号的幅度（或功率）沿距离�
 
 基于深度学习的RATR系统通常遵循一个标准的监督学习框架。假设拥有训练数据集 $D_{train} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{M}$，其中 $\mathbf{x}_i \in \mathcal{X}$ 是雷达观测数据（如HRRP向量 $\mathbf{p}_i \in \mathbb{R}^N$），$y_i \in \mathcal{Y} = \{1, \dots, C\}$ 是对应的目标类别标签。目标是学习一个映射函数 $f_\Theta: \mathcal{X} \rightarrow \mathcal{Y}$，该函数由参数 $\Theta$ 控制，能对未知样本 $\mathbf{x}$ 预测其类别 $\hat{y} = f_\Theta(\mathbf{x})$。
 
-在深度学习框架下，$f_\Theta$ 通常由一个DNN实现，可视为复合函数，由多个层组成，每层对其输入进行线性变换和非线性激活。一个包含 $L$ 层的前馈神经网络可表示为：
+在深度学习框架下，$f_\Theta$ 通常由一个深度神经网络（Deep Neural Network，DNN）实现，可视为复合函数，由多个层组成，每层对其输入进行线性变换和非线性激活。一个包含 $L$ 层的前馈神经网络可表示为：
 \begin{align}
     \mathbf{a}^{(l)} &= W^{(l)} \mathbf{h}^{(l-1)} + \mathbf{b}^{(l)} \label{eq:dnn_linear} \\
     \mathbf{h}^{(l)} &= \sigma^{(l)}(\mathbf{a}^{(l)}) \label{eq:dnn_activation}
@@ -162,7 +162,94 @@ HRRP通常定义为脉冲压缩后输出信号的幅度（或功率）沿距离�
     \label{fig:深度学习_framework}
 \end{figure}
 
+\subsection{典型深度学习模型及其适用性}
+\label{subsec:typical_深度学习_models}
 
+立足于前述基于深度学习的RATR通用框架，针对HRRP数据独特的物理属性与表征形式，研究界已发展并应用了多种特定的深度神经网络架构。HRRP作为目标一维散射信息的载体，其数据形态呈现为一维序列 $\mathbf{p} \in \mathbb{R}^N$（$N$为距离单元数），蕴含着丰富的局部结构信息（如散射中心的位置、强度、形状），同时也表现出对观测角度和噪声的高度敏感性。这些特性共同决定了并非所有深度学习模型都同样适用于HRRP识别任务，模型的选择与设计必须充分考虑如何有效提取HRRP中的判别性信息，同时抑制敏感性带来的负面影响。因此，研究人员已成功探索并适配了包括CNN、RNN、LSTM、Transformer以及自编码器（Atuo-Encoder，AE）等多种深度模型，它们各自凭借不同的结构优势，在HRRP特征学习与识别任务中展现出独特的适用性与潜力。
+
+一维卷积神经网络（1D-CNN）因其在提取局部空间（或时间）模式方面的强大能力，并具有一定的平移不变性，被广泛应用于处理HRRP这类一维序列数据\upcite{song_radar_2019, guo_radar_2019}。对于输入HRRP向量 $\mathbf{p} \in \mathbb{R}^{N \times C_{in}}$（这里假设输入可以有 $C_{in}$ 个通道，例如原始幅度、相位或不同预处理结果；若仅为幅度，则 $C_{in}=1$），一个1D-CNN层包含 $C_{out}$ 个卷积核（Filter）。第 $j$ ($j=1, \dots, C_{out}$) 个卷积核 $\mathbf{K}_j \in \mathbb{R}^{F \times C_{in}}$（$F$ 为核尺寸）在输入序列上以步长 $S$ 滑动，并考虑填充 $P$（Padding）。输出特征图 $\mathbf{H}_j \in \mathbb{R}^{N'}$ 的第 $n$ 个元素通过以下卷积操作计算得到：
+\begin{equation}
+    H_{j,n} = \sigma\left( \sum_{c=1}^{C_{in}} \sum_{f=1}^{F} K_{j,f,c} \, p_{n \cdot S + f - P', c} + b_j \right)
+    \label{eq:1d_cnn_conv_detailed}
+\end{equation}
+其中，$p_{n',c}$ 是输入序列在位置 $n'$、通道 $c$ 的值（经过填充处理），$K_{j,f,c}$ 是第 $j$ 个核在位置 $f$、输入通道 $c$ 的权重，$b_j$ 是第 $j$ 个核对应的偏置，$P'$ 与填充 $P$ 和核中心有关，$\sigma(\cdot)$ 是非线性激活函数（如ReLU, LeakyReLU）。输出特征图的长度 $N' = \lfloor (N + 2P - F) / S \rfloor + 1$。通过堆叠多个卷积层（使用不同的核尺寸、步长、填充和通道数，或引入空洞卷积以增大感受野而不增加参数），模型能够学习到HRRP中从低级的边缘、纹理模式到高级的散射中心组合结构的层次化特征表示。
+
+在卷积层之间或之后，通常会插入池化层（Pooling Layer），如最大池化（Max Pooling）或平均池化（Average Pooling）。池化操作在一个局部窗口（大小为 $F_p$，步长为 $\mathcal{S}_p$）内对特征图进行下采样。例如，最大池化输出为：
+\begin{equation}
+    H'_{j,n} = \max_{i=(n-1)\mathcal{S}_p+1}^{\min(n\mathcal{S}_p, N')} H_{j,i}
+    \label{eq:max_pooling}
+\end{equation}
+池化层的主要作用是降低特征图的空间维度（长度），减少计算量和参数数量，并提供一定程度的局部平移不变性，增强模型对HRRP轻微平移或形变的鲁棒性。
+
+为了构建更深、更有效的CNN模型，研究者引入了先进的网络结构。残差网络 （Residual Network，ResNet）\upcite{resnet} 通过引入“跳跃连接”（Skip Connection）来缓解深度网络训练中的梯度消失问题。其核心思想是学习残差映射 $\mathcal{F}(\mathbf{h}^{(l-1)})$，并将输入 $\mathbf{h}^{(l-1)}$ 直接加到输出上：
+\begin{equation}
+    \mathbf{h}^{(l)} = \sigma(\mathcal{F}(\mathbf{h}^{(l-1)}; \mathbf{W}^{(l)}) + \mathbf{h}^{(l-1)})
+    \label{eq:resnet_block}
+\end{equation}
+这种恒等映射的捷径使得梯度能够更容易地反向传播到浅层。密集连接网络 （Densely Connected Convolutional Network，DenseNet）\upcite{huang_2017_cvpr} 则更进一步，将每一层与其后所有层直接连接，每一层的输入包含了前面所有层的特征图的拼接：
+\begin{equation}
+    \mathbf{h}^{(l)} = \sigma(\mathbf{W}^{(l)} [\mathbf{h}^{(0)}, \mathbf{h}^{(1)}, \dots, \mathbf{h}^{(l-1)}] + \mathbf{b}^{(l)})
+    \label{eq:densenet_block}
+\end{equation}
+其中 $[\cdot]$ 表示特征图在通道维度上的拼接。DenseNet通过最大化信息流和特征重用，可以用更少的参数达到很高的性能。这些结构都可以适配到1D-CNN中，用于构建更强大的HRRP特征提取器。1D-CNN因其对局部结构信息的强大捕捉能力，特别适合提取HRRP中由散射中心及其相对位置关系所决定的特征。
+
+RNN及其变种特别适合处理具有时序或序列依赖性的数据。当HRRP数据以随时间 $t$ 或角度 $\alpha$ 变化的序列 $\mathbf{P} = (\mathbf{p}_1, \mathbf{p}_2, \dots, \mathbf{p}_T)$ 形式给出时（$\mathbf{p}_t \in \mathbb{R}^N$），RNN能够通过其内部的循环结构来建模序列中的动态信息。标准的RNN在时刻 $t$ 计算隐藏状态 $\mathbf{h}_t \in \mathbb{R}^{d_h}$，该状态依赖于当前输入 $\mathbf{p}_t \in \mathbb{R}^N$ 和前一时刻的隐藏状态 $\mathbf{h}_{t-1}$：
+\begin{equation}
+    \mathbf{h}_t = \sigma_h(\mathbf{W}_{hh} \mathbf{h}_{t-1} + \mathbf{W}_{xh} \mathbf{p}_t + \mathbf{b}_h)
+    \label{eq:rnn_recurrence_dim}
+\end{equation}
+其中 $\mathbf{W}_{hh} \in \mathbb{R}^{d_h \times d_h}$ 和 $\mathbf{W}_{xh} \in \mathbb{R}^{d_h \times N}$ 是权重矩阵，$\mathbf{b}_h$ 是偏置，$\sigma_h$ 是激活函数。隐藏状态 $\mathbf{h}_t$ 理论上编码了从序列开始到时刻 $t$ 的所有信息。最终的序列表示（如 $\mathbf{h}_T$ 或所有隐藏状态的某种聚合）被用于分类。然而，标准RNN在处理长序列时会遇到梯度消失或爆炸的问题，难以学习长距离依赖关系\upcite{pan_radar_2022}。
+
+LSTM\upcite{tu_novel_2019, jithesh_lstm_2017}通过引入精巧的门控机制（遗忘门 $\mathbf{f}_t$、输入门 $\mathbf{i}_t$、输出门 $\mathbf{o}_t$）和一个独立的细胞状态 $\mathbf{C}_t \in \mathbb{R}^{d_h}$ 来克服这一问题。这些门控制着信息的流入、流出以及在细胞状态中的长期保存。其更新过程如下（输入为 $[\mathbf{h}_{t-1}, \mathbf{p}_t] \in \mathbb{R}^{d_h+N}$）：
+\begin{align}
+    \mathbf{f}_t &= \sigma_g(\mathbf{W}_f [\mathbf{h}_{t-1}, \mathbf{p}_t] + \mathbf{b}_f) \in \mathbb{R}^{d_h} \label{eq:lstm_f_dim} \\
+    \mathbf{i}_t &= \sigma_g(\mathbf{W}_i [\mathbf{h}_{t-1}, \mathbf{p}_t] + \mathbf{b}_i) \in \mathbb{R}^{d_h} \label{eq:lstm_i_dim} \\
+    \tilde{\mathbf{C}}_t &= \sigma_c(\mathbf{W}_C [\mathbf{h}_{t-1}, \mathbf{p}_t] + \mathbf{b}_C) \in \mathbb{R}^{d_h} \label{eq:lstm_c_tilde_dim} \\
+    \mathbf{C}_t &= \mathbf{f}_t \odot \mathbf{C}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{C}}_t \in \mathbb{R}^{d_h} \label{eq:lstm_c_dim} \\
+    \mathbf{o}_t &= \sigma_g(\mathbf{W}_o [\mathbf{h}_{t-1}, \mathbf{p}_t] + \mathbf{b}_o) \in \mathbb{R}^{d_h} \label{eq:lstm_o_dim} \\
+    \mathbf{h}_t &= \mathbf{o}_t \odot \sigma_h(\mathbf{C}_t) \in \mathbb{R}^{d_h} \label{eq:lstm_h_dim}
+\end{align}
+其中 $\mathbf{W}_f, \mathbf{W}_i, \mathbf{W}_C, \mathbf{W}_o \in \mathbb{R}^{d_h \times (d_h+N)}$ 是权重矩阵，$\odot$ 是逐元素乘积，$\sigma_g$ 通常是Sigmoid，$\sigma_c, \sigma_h$ 通常是Tanh。LSTM能够更有效地学习和记忆长序列中的依赖关系。门控循环单元（Gated Recurrent Unit, GRU）是LSTM的一个简化变种。双向RNN、LSTM （BiRNN、BiLSTM） 则通过同时处理正向和反向序列，能够捕捉每个时刻的过去和未来上下文信息，其输出 $\mathbf{h}_t = [\overrightarrow{\mathbf{h}}_t; \overleftarrow{\mathbf{h}}_t]$。卷积LSTM （ConvLSTM） 则将卷积操作引入LSTM的门计算中，适合处理时空序列数据。这些RNN及其变种非常适合建模HRRP随角度变化的动态特性，或者捕捉单个HRRP内部沿距离单元的顺序依赖关系\upcite{zeng_radar_2022, pan_radar_2022, tu_novel_2019, jithesh_lstm_2017, yang_radar_2024}。
+
+注意力机制\upcite{pan_radar_2022} 可以与RNN、LSTM等序列模型结合，使模型能够动态地、有选择地关注输入序列（或隐藏状态序列）中与当前任务最相关的部分。例如，在序列到序列模型中，解码器在生成每个输出时，会计算一个注意力权重分布 $\boldsymbol{\alpha}_t$ 在编码器所有时刻隐藏状态 $\{\mathbf{h}_i^{enc}\}$ 上，然后计算一个上下文向量 $\mathbf{c}_t = \sum_i \alpha_{ti} \mathbf{h}_i^{enc}$，该向量包含了当前最相关的源序列信息，并被用于辅助解码。注意力机制提高了模型处理长序列和对齐输入输出的能力。
+
+近年来，完全基于自注意力机制（Self-Attention）的Transformer模型\upcite{vaswani_attention_2017, li_mtbc_2025, gao_polarimetric_2024, yang_radar_2024} 在序列处理任务上取得了巨大成功，并开始被探索用于HRRP识别。其核心是自注意力层，它计算序列中每个元素（例如HRRP序列中的一个样本，或单个HRRP中的一个距离单元表示）与其他所有元素之间的相关性权重，并据此聚合信息来更新自身表示。标准的缩放点积注意力计算如下：
+\begin{equation}
+    \text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}\right)\mathbf{V}
+    \label{eq:scaled_dot_product_attention}
+\end{equation}
+其中 $\mathbf{Q}, \mathbf{K}, \mathbf{V}$ 分别是由输入序列通过线性变换得到的查询、键、值矩阵。Transformer通常采用多头注意力（Multi-Head Attention），即并行地计算多个独立的注意力头，然后将结果拼接并再次线性变换，以捕捉不同子空间中的不同依赖关系：
+\begin{equation}
+    \text{MultiHead}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{Concat}(\text{head}_1, \dots, \text{head}_H) \mathbf{W}^O
+    \label{eq:multi_head_attention}
+\end{equation}
+其中 $\text{head}_h = \text{Attention}(\mathbf{Q}\mathbf{W}_h^Q, \mathbf{K}\mathbf{W}_h^K, \mathbf{V}\mathbf{W}_h^V)$。Transformer通过堆叠自注意力层和前馈网络层，能够并行地捕捉序列内任意两个位置之间的长距离依赖关系，这对于理解HRRP序列的角度演化或HRRP内部散射中心的复杂相互作用可能具有优势。
+
+AE及其变种是一类重要的无监督学习模型，旨在学习数据的有效压缩表示（编码）并能从中重构原始数据（解码）。基础AE由编码器 $g_\phi: \mathcal{X} \rightarrow \mathcal{Z}$ 和解码器 $f_\psi: \mathcal{Z} \rightarrow \mathcal{X}$ 组成，$\mathcal{Z}$ 是通常维度较低的隐空间 $\mathbb{R}^{d_z}$ ($d_z \ll \text{dim}(\mathcal{X})$)。它们通常由多层神经网络实现，例如：
+\begin{align}
+    \mathbf{z} &= g_\phi(\mathbf{x}) = \sigma_e(\mathbf{W}_e^{(L_e)} \dots \sigma_e(\mathbf{W}_e^{(1)} \mathbf{x} + \mathbf{b}_e^{(1)}) \dots + \mathbf{b}_e^{(L_e)}) \label{eq:ae_encoder_mlp} \\
+    \hat{\mathbf{x}} &= f_\psi(\mathbf{z}) = \sigma_d(\mathbf{W}_d^{(L_d)} \dots \sigma_d(\mathbf{W}_d^{(1)} \mathbf{z} + \mathbf{b}_d^{(1)}) \dots + \mathbf{b}_d^{(L_d)}) \label{eq:ae_decoder_mlp}
+\end{align}
+训练目标是最小化输入 $\mathbf{x}$ 与重构输出 $\hat{\mathbf{x}}$ 之间的重构误差，如均方误差 (MSE)：
+\begin{equation}
+    \phi^*, \psi^* = \arg\min_{\phi, \psi} \mathbb{E}_{\mathbf{x} \sim p_{data}(\mathbf{x})} [ ||\mathbf{x} - f_\psi(g_\phi(\mathbf{x}))||^2 ]
+    \label{eq:ae_objective_mse}
+\end{equation}
+训练完成后，编码器 $g_{\phi^*}$ 可以提取输入数据的低维、非线性特征表示 $\mathbf{z}$，用于后续的分类、降维等任务。
+
+AE有多种重要变种：稀疏自编码器（Sparse AE）\upcite{guo_method_2020} 通过在损失函数中加入对隐层激活值的稀疏性惩罚（如L1正则项或KL散度），迫使模型学习到更具信息量和可解释性的稀疏表示。去噪自编码器 （Denoising AE, DAE）\upcite{wu_cae_2023, Vincent2008DAE} 的输入是原始数据 $\mathbf{x}$ 的一个损坏版本 $\tilde{\mathbf{x}}$（例如加入高斯噪声），而目标是重构出干净的原始数据 $\mathbf{x}$。其优化目标为：
+\begin{equation}
+    \phi^*, \psi^* = \arg\min_{\phi, \psi} \mathbb{E}_{(\mathbf{x}, \tilde{\mathbf{x}})} [ ||\mathbf{x} - f_\psi(g_\phi(\tilde{\mathbf{x}}))||^2 ]
+    \label{eq:dae_objective}
+\end{equation}
+通过强制模型从噪声中恢复信号，DAE能够学习到对输入扰动更鲁棒的特征表示，非常适合用于HRRP信号的去噪和鲁棒特征提取。变分自编码器（Variational AE, VAE）\upcite{zhai_robust_2017, Kingma2014VAE} 则是一种生成模型，它假设隐变量 $\mathbf{z}$ 服从某个先验分布 $p(\mathbf{z})$（通常是标准正态分布），并学习一个概率编码器 $q_\phi(\mathbf{z}|\mathbf{x})$（输出 $\mathbf{z}$ 的均值 $\boldsymbol{\mu}_\phi(\mathbf{x})$ 和方差 $\boldsymbol{\sigma}^2_\phi(\mathbf{x})$）和一个概率解码器 $p_\psi(\mathbf{x}|\mathbf{z})$。其优化目标（证据下界，ELBO）包含重构项和正则化项（编码器后验与先验的KL散度）：
+\begin{equation}
+    \mathcal{L}_{VAE} = \mathbb{E}_{q_\phi(\mathbf{z}|\mathbf{x})}[-\log p_\psi(\mathbf{x}|\mathbf{z})] - D_{KL}(q_\phi(\mathbf{z}|\mathbf{x}) || p(\mathbf{z}))
+    \label{eq:vae_objective}
+\end{equation}
+VAE不仅能学习特征表示，还能通过从先验分布 $p(\mathbf{z})$ 中采样并送入解码器 $p_\psi(\mathbf{x}|\mathbf{z})$ 来生成新的HRRP样本，在数据增广方面有应用潜力\upcite{zhang_patch-wise_2023}。
+
+这些深度学习模型为HRRP RATR提供了强大的表示学习能力。然而，它们的成功通常依赖于大量的、覆盖目标各种状态的标注数据。当数据量严重不足时（即小样本场景），这些参数量巨大的模型极易过拟合，泛化能力差，这正是FSL和元学习需要解决的核心问题。
 \section{小样本RATR问题建模}
 \label{sec:fsl_modeling}
 
@@ -173,27 +260,27 @@ FSL旨在使机器学习模型能够像人类一样，从极少数的样本中�
 
 FSL问题通常设定在一个与监督学习不同的场景中。假设存在两个类别集合：基类别 $C_{base}$ 和新类别 $C_{novel}$，它们之间没有交集，即 $C_{base} \cap C_{novel} = \emptyset$。我们拥有一个基础数据集 $D_{base} = \{(\mathbf{x}_i, y_i) | y_i \in C_{base}\}_{i=1}^{M_{base}}$，其中包含来自基类别的大量标注样本。目标是利用在 $D_{base}$ 上学习到的知识，使模型能够在面对来自新类别 $C_{novel}$ 的任务时表现良好，即使每个新类别 $c \in C_{novel}$ 只有极少数（$K$个）标注样本可用。这种设定被称为 $K$-shot 学习，其中 $K$ 通常很小（如1或5）。同时，任务通常涉及从 $C_{novel}$ 中区分 $N$ 个类别，称为 $N$-way $K$-shot 问题。
 
-为了有效地训练和评估能够解决FSL问题的模型，研究界广泛采用了基于任务的训练范式（S/Q Training）\upcite{li_libfewshot_2023, achille_task2vec_2019, achille_task2vec_2019, achille_task2vec_2019, maurer_benefit_2016}。该范式通过在训练阶段模拟测试时的小样本场景来进行。具体来说，训练过程不是在整个 $D_{base}$ 上一次性完成，而是通过从 $D_{base}$ 中反复采样生成大量模拟的小样本学习任务。一个典型的 $N$-way $K$-shot 分类任务 $\mathcal{T}$ 的构建过程如下：首先，从 $C_{base}$ 中随机无放回地选择 $N$ 个类别，构成该任务的类别子集 $C_{\mathcal{T}}$。然后，对于 $C_{\mathcal{T}}$ 中的每一个类别 $c$，从 $D_{base}$ 中该类别的样本里随机选择 $K$ 个标注样本，构成该任务的支持集（Support Set） $S_{\mathcal{T}} = \{(\mathbf{x}_i^s, y_i^s)\}_{i=1}^{N \times K}$，其中 $y_i^s \in C_{\mathcal{T}}$。支持集的作用是提供给模型在该特定任务上进行学习或适应的少量信息。接着，对于这 $N$ 个类别 $C_{\mathcal{T}}$，再从 $D_{base}$ 中（确保与 $S_{\mathcal{T}}$ 中的样本不同）选择一批样本，构成该任务的查询集（Query Set） $Q_{\mathcal{T}} = \{(\mathbf{x}_j^q, y_j^q)\}_{j=1}^{N_q}$，其中 $y_j^q \in C_{\mathcal{T}}$。查询集用于评估模型在利用支持集 $S_{\mathcal{T}}$ 进行学习/适应后的性能。通常，每个类别的查询样本数量 $N_q/N$ 会大于 $K$。
+为了有效地训练和评估能够解决FSL问题的模型，研究界广泛采用了基于任务的训练范式（S/Q Training）\upcite{li_libfewshot_2023, achille_task2vec_2019, achille_task2vec_2019, achille_task2vec_2019, maurer_benefit_2016}。该范式通过在训练阶段模拟测试时的小样本场景来进行。具体来说，训练过程不是在整个 $D_{base}$ 上一次性完成，而是通过从 $D_{base}$ 中反复采样生成大量模拟的小样本学习任务。一个典型的 $N$-way $K$-shot 分类任务 $\mathcal{T}$ 的构建过程如下：首先，从 $C_{base}$ 中随机无放回地选择 $N$ 个类别，构成该任务的类别子集 $C_{\mathcal{T}}$。然后，对于 $C_{\mathcal{T}}$ 中的每一个类别 $c$，从 $D_{base}$ 中该类别的样本里随机选择 $K$ 个标注样本，构成该任务的支持集（Support Set） $\mathcal{S}_{\mathcal{T}} = \{(\mathbf{x}_i^s, y_i^s)\}_{i=1}^{N \times K}$，其中 $y_i^s \in C_{\mathcal{T}}$。支持集的作用是提供给模型在该特定任务上进行学习或适应的少量信息。接着，对于这 $N$ 个类别 $C_{\mathcal{T}}$，再从 $D_{base}$ 中（确保与 $\mathcal{S}_{\mathcal{T}}$ 中的样本不同）选择一批样本，构成该任务的查询集（Query Set） $\mathcal{Q}_{\mathcal{T}} = \{(\mathbf{x}_j^q, y_j^q)\}_{j=1}^{N_q}$，其中 $y_j^q \in C_{\mathcal{T}}$。查询集用于评估模型在利用支持集 $\mathcal{S}_{\mathcal{T}}$ 进行学习/适应后的性能。通常，每个类别的查询样本数量 $N_q/N$ 会大于 $K$。
 
-模型的训练目标是在大量按某种分布 $p(\mathcal{T})$ 采样生成的任务 $\mathcal{T}$ 上进行优化，使其能够最小化在各个任务查询集上的期望损失。通过这种在大量不同的小样本任务上进行“演练”的训练方式，期望模型能够学习到一种通用的、跨任务的“元知识”或“学习策略”。拥有这种能力的模型，在元测试（Meta-Testing）阶段，当面对一个由来自新类别 $C_{novel}$ 构成的、同样是 $N$-way $K$-shot 设置的新任务 $\mathcal{T}_{novel}$ 时，就能够利用其支持集 $S_{novel}$ 快速适应，并对其查询集 $Q_{novel}$ 中的样本做出准确的预测\upcite{tripuraneni_provable_2021, du_few-shot_2020}。
+模型的训练目标是在大量按某种分布 $p(\mathcal{T})$ 采样生成的任务 $\mathcal{T}$ 上进行优化，使其能够最小化在各个任务查询集上的期望损失。通过这种在大量不同的小样本任务上进行“演练”的训练方式，期望模型能够学习到一种通用的、跨任务的“元知识”或“学习策略”。拥有这种能力的模型，在元测试（Meta-Testing）阶段，当面对一个由来自新类别 $C_{novel}$ 构成的、同样是 $N$-way $K$-shot 设置的新任务 $\mathcal{T}_{novel}$ 时，就能够利用其支持集 $\mathcal{S}_{novel}$ 快速适应，并对其查询集 $\mathcal{Q}_{novel}$ 中的样本做出准确的预测\upcite{tripuraneni_provable_2021, du_few-shot_2020}。
 
 在小样本HRRP RATR问题中，$\mathbf{x}$ 是HRRP样本（向量 $\mathbf{p}$ 或序列 $\mathbf{P}$），$y$ 是目标类别标签。$D_{base}$ 可能是包含若干常见目标类型（如飞机A、B、C）在多种姿态角、多种信噪比下的大量HRRP样本。$C_{novel}$ 则包含一些新的、稀有的目标类型（如飞机X、Y、Z），每种只有 $K$ 个标注样本。训练时模拟大量 $N$-way $K$-shot 任务，测试时则在由 $C_{novel}$ 构成的 $N$-way $K$-shot 任务上评估模型的泛化识别能力。
 
-小样本学习的核心困难在于，当每个类别的样本数量 $K$ 极小时，标准监督学习训练的深度模型 $f_\Theta$ 往往无法学习到具有良好泛化性的特征表示。这尤其体现在特征判别性不足的问题上。理想情况下，模型学习到的特征提取器 $\phi_\theta$（例如DNN的倒数第二层输出）应将来自同一类别的样本（即使它们由于姿态、噪声等原因看起来差异很大）映射到特征空间中的紧凑区域，并将不同类别的区域分离开。然而，当 $K$ 很小时，模型从每个类别看到的样本非常有限，可能无法捕捉到该类别的本质、不变的特征，而更容易关注到样本特有的、偶然的细节或噪声。这导致学习到的嵌入空间中，同类样本可能分散得很开（类内方差大），而不同类别的样本（特别是物理特征相似的类别）可能相互混杂（类间距离小）。形式化地，假设 $\phi_\theta(\mathbf{x})$ 是样本 $\mathbf{x}$ 的嵌入向量，对于属于类别 $y$ 的样本，其类内散布矩阵 $S_W = \sum_{c=1}^C \sum_{\mathbf{x}: y=c} (\phi_\theta(\mathbf{x}) - \mu_c)(\phi_\theta(\mathbf{x}) - \mu_c)^T$（$\mu_c$ 为类别 $c$ 的均值向量）的迹可能很大，而类间散布矩阵 $S_B = \sum_{c=1}^C N_c (\mu_c - \mu)(\mu_c - \mu)^T$（$\mu$ 为总均值， $N_c$ 为类别 $c$ 样本数）的迹相对较小，导致 Fisher 判别准则 $J = \text{tr}(S_W^{-1} S_B)$ 很小，即可分性差。这是小样本RATR面临的第三个关键问题（特征判别性不足）的数学根源之一。
+小样本学习的核心困难在于，当每个类别的样本数量 $K$ 极小时，标准监督学习训练的深度模型 $f_\Theta$ 往往无法学习到具有良好泛化性的特征表示。这尤其体现在特征判别性不足的问题上。理想情况下，模型学习到的特征提取器 $\phi_\theta$（例如DNN的倒数第二层输出）应将来自同一类别的样本（即使它们由于姿态、噪声等原因看起来差异很大）映射到特征空间中的紧凑区域，并将不同类别的区域分离开。然而，当 $K$ 很小时，模型从每个类别看到的样本非常有限，可能无法捕捉到该类别的本质、不变的特征，而更容易关注到样本特有的、偶然的细节或噪声。这导致学习到的嵌入空间中，同类样本可能分散得很开（类内差异大），而不同类别的样本（特别是物理特征相似的类别）可能相互混杂（类间距离小）。形式化地，假设 $\phi_\theta(\mathbf{x})$ 是样本 $\mathbf{x}$ 的嵌入向量，对于属于类别 $y$ 的样本，其类内散布矩阵 $\mathcal{S}_W = \sum_{c=1}^C \sum_{\mathbf{x}: y=c} (\phi_\theta(\mathbf{x}) - \mu_c)(\phi_\theta(\mathbf{x}) - \mu_c)^T$（$\mu_c$ 为类别 $c$ 的均值向量）的迹可能很大，而类间散布矩阵 $\mathcal{S}_B = \sum_{c=1}^C N_c (\mu_c - \mu)(\mu_c - \mu)^T$（$\mu$ 为总均值， $N_c$ 为类别 $c$ 样本数）的迹相对较小，导致 Fisher 判别准则 $J = \text{tr}(\mathcal{S}_W^{-1} \mathcal{S}_B)$ 很小，即可分性差。这是小样本RATR面临的第三个关键问题（特征判别性不足）的数学根源之一。
 
 此外，标准的模型 $f_\Theta(\mathbf{x})$ 通常只接收物理观测数据 $\mathbf{x}$ 作为输入。然而，如第一章所述，目标的语义信息 $s$（如功能类别、型号家族等）在小样本或特征模糊时可能提供重要的补充判别线索。当前框架下，语义信息 $s$ 并未被利用，即模型是 $f_\Theta(\mathbf{x})$ 而非 $f_\Theta(\mathbf{x}, s)$。这种语义信息利用的匮乏，形式上表现为模型输入空间的局限性，是小样本RATR面临的第三个问题的另一方面。后续章节将探讨如何将语义信息 $s$ 有效地融入学习框架。
 
 \subsection{基于元学习的小样本 RATR 框架}
 \label{subsec:meta_learning_framework}
 
-元学习为解决上述FSL问题提供了一个强大的理论框架，旨在通过在大量相关任务上的学习，让模型掌握一种能够快速适应新任务的通用学习能力或先验知识（元知识）。形式化地，元学习的目标是学习一个元学习器 $\mathcal{A}$，其自身可能包含一组元参数 $\Phi$。当给定新任务 $\mathcal{T}$ 的支持集 $S_{\mathcal{T}}$ 时，元学习器能利用 $S_{\mathcal{T}}$ 适应自身，对查询样本 $\mathbf{x}^q$ 做出预测 $\hat{y}^q = \mathcal{A}(\mathbf{x}^q | S_{\mathcal{T}}; \Phi)$。元学习的训练过程（Meta-Training）旨在找到最优元参数 $\Phi^*$，使得元学习器在任务分布 $p(\mathcal{T})$ 上的期望性能最优。这通常通过最小化在所有训练任务 $\mathcal{T}_i \sim p(\mathcal{T})$ 上的平均损失来实现：
+元学习为解决上述FSL问题提供了一个强大的理论框架，旨在通过在大量相关任务上的学习，让模型掌握一种能够快速适应新任务的通用学习能力或先验知识（元知识）。形式化地，元学习的目标是学习一个元学习器 $\mathcal{A}$，其自身可能包含一组元参数 $\Phi$。当给定新任务 $\mathcal{T}$ 的支持集 $\mathcal{S}_{\mathcal{T}}$ 时，元学习器能利用 $\mathcal{S}_{\mathcal{T}}$ 适应自身，对查询样本 $\mathbf{x}^q$ 做出预测 $\hat{y}^q = \mathcal{A}(\mathbf{x}^q | \mathcal{S}_{\mathcal{T}}; \Phi)$。元训练过程（Meta-Training）旨在找到最优元参数 $\Phi^*$，使得元学习器在任务分布 $p(\mathcal{T})$ 上的期望性能最优。这通常通过最小化在所有训练任务 $\mathcal{T}_i \sim p(\mathcal{T})$ 上的平均损失来实现：
 \begin{equation}
-    \Phi^* = \arg\min_{\Phi} \mathbb{E}_{\mathcal{T}_i=(S_i, Q_i) \sim p(\mathcal{T})} [\mathcal{L}_{\mathcal{T}_i}(\Phi)]
+    \Phi^* = \arg\min_{\Phi} \mathbb{E}_{\mathcal{T}_i=(\mathcal{S}_i, \mathcal{Q}_i) \sim p(\mathcal{T})} [\mathcal{L}_{\mathcal{T}_i}(\Phi)]
     \label{eq:meta_objective}
 \end{equation}
-其中，$\mathcal{L}_{\mathcal{T}_i}(\Phi)$ 是元学习器在任务 $\mathcal{T}_i$ 上的损失，通常定义为在给定支持集 $S_i$ 条件下，在查询集 $Q_i$ 上的平均损失：
+其中，$\mathcal{L}_{\mathcal{T}_i}(\Phi)$ 是元学习器在任务 $\mathcal{T}_i$ 上的损失，通常定义为在给定支持集 $\mathcal{S}_i$ 条件下，在查询集 $\mathcal{Q}_i$ 上的平均损失：
 \begin{equation}
-    \mathcal{L}_{\mathcal{T}_i}(\Phi) = \frac{1}{N_q} \sum_{j=1}^{N_q} \mathcal{L}( \mathcal{A}(\mathbf{x}_j^q | S_i; \Phi), y_j^q )
+    \mathcal{L}_{\mathcal{T}_i}(\Phi) = \frac{1}{N_q} \sum_{j=1}^{N_q} \mathcal{L}( \mathcal{A}(\mathbf{x}_j^q | \mathcal{S}_i; \Phi), y_j^q )
     \label{eq:task_loss_meta}
 \end{equation}
 $\mathcal{L}(\cdot, \cdot)$ 是基学习任务的损失函数（如交叉熵）。元参数 $\Phi$ 的优化通常也采用基于梯度的优化方法。以下介绍两种主流的元学习范式：
@@ -215,10 +302,10 @@ $\mathcal{L}(\cdot, \cdot)$ 是基学习任务的损失函数（如交叉熵）�
 \end{equation}
 其中 $\gamma$ 是尺度参数。在元训练阶段，参数 $\theta$ 通过最小化在大量采样任务查询集上的负对数似然损失来学习：
 \begin{equation}
-    \theta^* = \arg\min_{\theta} \mathbb{E}_{\mathcal{T}_i \sim p(\mathcal{T})} \left[ \sum_{(\mathbf{x}_j^q, y_j^q) \in Q_i} -\log p(y=y_j^q | \mathbf{x}_j^q, S_i; \theta) \right]
+    \theta^* = \arg\min_{\theta} \mathbb{E}_{\mathcal{T}_i \sim p(\mathcal{T})} \left[ \sum_{(\mathbf{x}_j^q, y_j^q) \in \mathcal{Q}_i} -\log p(y=y_j^q | \mathbf{x}_j^q, \mathcal{S}_i; \theta) \right]
     \label{eq:protonet_meta_objective}
 \end{equation}
-ProtoNet\upcite{snell_prototypical_2017, tian_open_2022}是这类方法的典型代表。其他基于度量的方法还包括MN\upcite{X}（使用注意力机制计算查询与支持样本的相似度）和RelationNet\upcite{X}（使用一个神经网络来学习相似度度量）。这类方法的优点是简洁、高效。然而，标准的度量学习方法可能对噪声敏感（噪声影响嵌入向量和距离计算），并且难以处理HRRP的极端角度敏感性（同一目标不同角度样本在嵌入空间可能距离很远，破坏原型代表性）。后续章节将针对这些问题对基于度量学习的元学习框架进行改进。
+ProtoNet\upcite{snell_prototypical_2017, tian_open_2022}是这类方法的典型代表。其他基于度量的方法还包括MN\upcite{vinyals_matching_2016}（使用注意力机制计算查询与支持样本的相似度）和RelationNet\upcite{sung_relation_2018}（使用一个神经网络来学习相似度度量）。这类方法的优点是简洁、高效。然而，标准的度量学习方法可能对噪声敏感（噪声影响嵌入向量和距离计算），并且难以处理HRRP的极端角度敏感性（同一目标不同角度样本在嵌入空间可能距离很远，破坏原型代表性）。后续章节将针对这些问题对基于度量学习的元学习框架进行改进。
 
 % --- 示意图占位符 ---
 \begin{figure}[h]
@@ -229,17 +316,17 @@ ProtoNet\upcite{snell_prototypical_2017, tian_open_2022}是这类方法的典型
     \label{fig:protonet}
 \end{figure}
 
-基于优化的元学习方法，其目标是学习一个模型的初始参数 $\theta_0$（作为元参数 $\Phi$），使得该初始参数能通过在新任务 $\mathcal{T}_i$ 的支持集 $S_i$ 上进行少量梯度下降更新，快速适应到对该任务最优的参数 $\theta_i'$。MAML\upcite{finn_model-agnostic_2017}是该方向的代表作。其元训练包含两个嵌套优化循环。内循环是任务适应：对于任务 $\mathcal{T}_i=(S_i, Q_i)$，从当前元参数 $\theta$ 出发，使用 $S_i$ 计算损失 $\mathcal{L}_{S_i}(\theta)$，并进行一步或 $U$ 步梯度下降更新得到任务特定参数 $\theta_i'$。例如，一步更新：
+基于优化的元学习方法，其目标是学习一个模型的初始参数 $\theta_0$（作为元参数 $\Phi$），使得该初始参数能通过在新任务 $\mathcal{T}_i$ 的支持集 $\mathcal{S}_i$ 上进行少量梯度下降更新，快速适应到对该任务最优的参数 $\theta_i'$。MAML\upcite{finn_model-agnostic_2017}是该方向的代表作。其元训练包含两个嵌套优化循环。内循环是任务适应：对于任务 $\mathcal{T}_i=(\mathcal{S}_i, \mathcal{Q}_i)$，从当前元参数 $\theta$ 出发，使用 $\mathcal{S}_i$ 计算损失 $\mathcal{L}_{\mathcal{S}_i}(\theta)$，并进行一步或 $U$ 步梯度下降更新得到任务特定参数 $\theta_i'$。例如，一步更新：
 \begin{equation}
-    \theta_i'(\theta) = \theta - \alpha \nabla_\theta \mathcal{L}_{S_i}(\theta)
+    \theta_i'(\theta) = \theta - \alpha \nabla_\theta \mathcal{L}_{\mathcal{S}_i}(\theta)
     \label{eq:maml_inner_update}
 \end{equation}
-其中 $\alpha$ 是内循环学习率。外循环是元优化：使用 $Q_i$ 评估适应后的模型 $f_{\theta_i'}$，计算损失 $\mathcal{L}_{Q_i}(\theta_i')$。元参数 $\theta$ 的更新基于所有任务的查询集损失梯度：
+其中 $\alpha$ 是内循环学习率。外循环是元优化：使用 $\mathcal{Q}_i$ 评估适应后的模型 $f_{\theta_i'}$，计算损失 $\mathcal{L}_{\mathcal{Q}_i}(\theta_i')$。元参数 $\theta$ 的更新基于所有任务的查询集损失梯度：
 \begin{equation}
-    \theta \leftarrow \theta - \beta \nabla_\theta \left( \sum_{\mathcal{T}_i \sim p(\mathcal{T})} \mathcal{L}_{Q_i}(\theta_i'(\theta)) \right)
+    \theta \leftarrow \theta - \beta \nabla_\theta \left( \sum_{\mathcal{T}_i \sim p(\mathcal{T})} \mathcal{L}_{\mathcal{Q}_i}(\theta_i'(\theta)) \right)
     \label{eq:maml_outer_update}
 \end{equation}
-其中 $\beta$ 是外循环学习率。计算元梯度 $\nabla_\theta \mathcal{L}_{Q_i}(\theta_i'(\theta))$ 通常需要二阶导数，计算成本较高，存在一阶近似方法如FOMAML\upcite{yang_few-shot_2022}和Reptile\upcite{nichol_reptile_2018}。MAML的核心是找到一个对任务损失变化敏感的初始化点。其优点是模型无关性。然而，MAML的训练可能不稳定，且对于HRRP的角度敏感性问题，仅仅几步梯度更新是否足以适应剧烈的特征变化也是一个疑问。
+其中 $\beta$ 是外循环学习率。计算元梯度 $\nabla_\theta \mathcal{L}_{\mathcal{Q}_i}(\theta_i'(\theta))$ 通常需要二阶导数，计算成本较高，存在一阶近似方法如FOMAML\upcite{yang_few-shot_2022}和Reptile\upcite{nichol_reptile_2018}以及简化方法ANIL\upcite{aniruddh_anil_2020}。MAML的核心是找到一个对任务损失变化敏感的初始化点。其优点是模型无关性。然而，MAML的训练可能不稳定，且对于HRRP的角度敏感性问题，仅仅几步梯度更新是否足以适应剧烈的特征变化也是一个疑问。
 
 % --- 示意图占位符 ---
 % \begin{figure}[h!]
@@ -250,10 +337,10 @@ ProtoNet\upcite{snell_prototypical_2017, tian_open_2022}是这类方法的典型
 %     \label{fig:maml}
 % \end{figure}
 
-元学习框架为解决小样本RATR问题提供了强大武器。通过元训练，模型有望学习到关于HRRP数据、类别关系及学习策略的元知识，从而在面对真实小样本场景时表现出更好的泛化性和适应能力。本论文后续章节将深入探讨如何将元学习框架（主要基于度量学习）与针对性的机制相结合，以应对噪声、角度敏感性及语义信息利用不足等具体问题。
+元学习框架为解决小样本RATR问题提供了强大武器。通过元训练，模型有望学习到关于HRRP数据、类别关系及学习策略的元知识，从而在面对真实小样本场景时表现出更好的泛化性和适应能力。后续章节将深入探讨如何将元学习框架与针对性机制结合，以应对噪声、角度敏感性及语义信息利用不足等具体问题。
 
 \section{本章小结}
 \label{sec:theory_summary}
-本章首先从物理层面深入剖析了HRRP的成像机理，推导了宽带雷达信号模型与HRRP的数学表达式（式~(\ref{eq:hrrp_definition_complex})），揭示了其与目标散射中心分布的关系及距离分辨率特性（式~(\ref{eq:range_resolution_kappa})）。通过引入噪声与杂波模型（式~(\ref{eq:hrrp_noisy})），形式化了低SNR/SCR对HRRP识别构成的第一个关键问题。进一步地，结合电磁散射理论和散射中心模型（式~(\ref{eq:ascm})）分析，阐明了HRRP对姿态角 $p(r; \theta, \phi)$ 的极端敏感性源于散射投影变化和相干干涉，并指出这是识别面临的第二个关键问题。这些分析为后续章节理解HRRP数据特性、应对噪声干扰与角度变化奠定了物理基础。
+本章首先从物理层面深入剖析了HRRP的成像机理，推导了宽带雷达信号模型与HRRP的数学表达式，揭示了其与目标散射中心分布的关系及距离分辨率特性。通过引入噪声与杂波模型，形式化了低SNR对HRRP识别构成的第一个关键问题。进一步地，结合电磁散射理论和散射中心模型分析，阐明了HRRP对姿态角 $p(r; \theta, \phi)$ 的极端敏感性源于散射投影变化和相干干涉，并指出这是识别面临的第二个关键问题。这些分析为后续章节理解HRRP数据特性、应对噪声干扰与角度变化奠定了物理基础。
 
-其次，本章回顾了基于深度学习的RATR框架，包括优化目标（式~(\ref{eq:optimization_objective})）和典型模型（如1D-CNN，式~(\ref{eq:1d_cnn_conv})；LSTM，式~(\ref{eq:lstm_h})）。接着，对小样本学习（FSL）问题进行了形式化定义，引入了S/Q Training范式，并从特征空间角度分析了小样本下特征判别性不足及语义信息 $s$ 缺失构成的第三个关键问题。最后，重点介绍了元学习框架（式~(\ref{eq:meta_objective})）及基于度量学习（如ProtoNet，式~(\ref{eq:prototype_calculation})-(\ref{eq:protonet_meta_objective})）和基于优化（如MAML，式~(\ref{eq:maml_inner_update}), (\ref{eq:maml_outer_update})）这两大主流范式的数学原理。本章通过梳理相关基础理论并形式化关键问题，为后续章节针对性地提出基于元学习的解决方案提供了统一的数学语言和坚实的理论铺垫。
+其次，本章回顾了基于深度学习的RATR框架，包括优化目标和典型模型。接着，对FSL问题进行了形式化定义，引入了S/Q Training范式，并从特征空间角度分析了小样本下特征判别性不足及语义信息 $s$ 缺失构成的第三个关键问题。最后，重点介绍了元学习框架及基于度量学习和基于优化这两大主流范式的数学原理。本章通过梳理相关基础理论并形式化关键问题，为后续章节针对性地提出基于元学习的解决方案提供了统一的数学语言和坚实的理论铺垫。
