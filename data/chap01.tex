@@ -77,8 +77,6 @@
 \label{sec:fsl_challenges} % 添加标签
 面对传统方法的局限以及深度学习范式下凸显的小样本瓶颈，FSL已成为推动RATR技术发展的关键研究方向\upcite{liu_few-shot_2021, li_libfewshot_2023, liu_ms_2021}。FSL旨在使模型具备从极少量标注样本中学习并泛化到新类别或新任务的能力\upcite{luo_closeragain_2023, vinyals_matching_2016}。近年来，研究者们已将多种源于通用机器学习领域的FSL策略引入小样本RATR研究，并针对雷达数据的特性进行了初步的适应与发展\upcite{kong_few-shot_2023, tai_few-shot_2022, luo_few-shot_2024}。本小节将首先概述FSL在RATR领域应用的主流技术途径，然后重点剖析本研究所关注的三个核心问题及其现有研究的不足之处。
 
-当前应用于小样本RATR的主流FSL技术途径大致可分为以下几类：
-
 % --- 插入图1.5：雷达小样本RATR技术研究现状 ---
 \begin{figure}[h]
     \centering
@@ -88,24 +86,25 @@
     \label{fig:meta_learning_paradigms}
 \end{figure}
 
+当前应用于小样本RATR的主流FSL技术途径大致可分为以下几类：
 
-一种是基于数据增广（Data Augmentation，DA）的策略\upcite{xu_effective_2024, song_limited_2024}。作为应对数据稀疏问题的常用手段，数据增广旨在通过对现有样本进行变换或利用生成模型合成新样本来扩充训练集，以期提升模型的泛化能力。在RATR领域，除了应用传统的几何变换、添加模拟噪声等简单操作外，基于深度生成模型，特别是生成对抗网络（Generative Adversarial Network, GAN），进行雷达样本合成以实现数据扩充的技术受到了广泛关注\upcite{zhou_gan_2022, song_limited_2024}。针对HRRP样本生成，Huang等\upcite{huang_recognition_2021}提出了一种识别感知的生成框架，通过分解与重组信号特征来生成具有判别力的HRRP样本，以提高识别系统性能。在SAR图像生成方面，Zeng等\upcite{zeng_gan_2024}提出了角度变换GAN（ATGAN），将生成任务重构为图像到图像的转换问题，实现了方位角可控且细节保持良好的SAR目标图像生成。针对ISAR图像数据的不完整性，Zhang等\upcite{zhang_gan_2024}设计了一种由粗到精的两阶段插值网络C2FIPNet，结合流估计与GAN，用于生成具有中间方位角的ISAR图像，以增强数据集并提升识别精度。然而，数据增广策略亦存在固有局限性。其一是简单的变换方法难以充分模拟雷达数据在真实场景下可能经历的复杂变化，例如由目标微动、散射中心迁移等引起的非线性效应\upcite{jian_survey_2022, guo_influence_2013}。其二，基于深度生成模型的方法虽然潜力巨大，但生成样本的保真度、多样性及与真实数据分布的一致性仍是挑战，训练过程中可能面临模式坍塌、难以控制生成样本属性等问题\upcite{xu_effective_2024, song_limited_2024}。更为关键的是，无论是变换已有样本还是生成新样本，现有数据增广主要依赖于已观测到的数据信息，并未引入关于未知类别目标的本质知识，因此其在提升模型对全新、未见类别的泛化识别能力方面作用有限\upcite{liu_ms_2021}。
+一是基于数据增广（Data Augmentation，DA）的策略\upcite{xu_effective_2024, song_limited_2024}。作为应对数据稀疏问题的常用手段，数据增广旨在通过对现有样本进行变换或利用生成模型合成新样本来扩充训练集，以期提升模型的泛化能力。在RATR领域，除了应用传统的几何变换、添加模拟噪声等简单操作外，基于深度生成模型，特别是生成对抗网络（Generative Adversarial Network, GAN），进行雷达样本合成以实现数据扩充的技术受到了广泛关注\upcite{zhou_gan_2022, song_limited_2024}。针对HRRP样本生成，Huang等\upcite{huang_recognition_2021}提出了一种识别感知的生成框架，通过分解与重组信号特征来生成具有判别力的HRRP样本，以提高识别系统性能。在SAR图像生成方面，Zeng等\upcite{zeng_gan_2024}提出了角度变换GAN（ATGAN），将生成任务重构为图像到图像的转换问题，实现了方位角可控且细节保持良好的SAR目标图像生成。针对ISAR图像数据的不完整性，Zhang等\upcite{zhang_gan_2024}设计了一种由粗到精的两阶段插值网络C2FIPNet，结合流估计与GAN，用于生成具有中间方位角的ISAR图像，以增强数据集并提升识别精度。然而，数据增广策略亦存在固有局限性。其一是简单的变换方法难以充分模拟雷达数据在真实场景下可能经历的复杂变化，例如由目标微动、散射中心迁移等引起的非线性效应\upcite{jian_survey_2022, guo_influence_2013}。其二，基于深度生成模型的方法虽然潜力巨大，但生成样本的保真度、多样性及与真实数据分布的一致性仍是挑战，训练过程中可能面临模式坍塌、难以控制生成样本属性等问题\upcite{xu_effective_2024, song_limited_2024}。更为关键的是，无论是变换已有样本还是生成新样本，现有数据增广主要依赖于已观测到的数据信息，并未引入关于未知类别目标的本质知识，因此其在提升模型对全新、未见类别的泛化识别能力方面作用有限\upcite{liu_ms_2021}。
 
 二是基于迁移学习（Transfer Learning，TL）的策略\upcite{wen_hrrp_2020, tai_few-shot_2022}。迁移学习的核心思想是将从数据充足的源域（如仿真数据、光学图像或大规模通用数据集）学习到的知识迁移应用于数据稀缺的目标域（如实测雷达数据）\upcite{tai_few-shot_2022}。在RATR中，常见的做法是利用源域数据预训练深度模型，然后在目标域的少量样本上进行微调\upcite{wen_hrrp_2020, li_mtbc_2025}。Wen等\upcite{wen_hrrp_2020}利用具有完整方位角信息的辅助HRRP数据来提升模型在方位角缺失情况下的识别性能；Tan等\upcite{tai_few-shot_2022}则探索了从光学图像域向SAR图像域的知识迁移。然而，迁移学习的有效性高度依赖于源域与目标域之间的相关性及相似性\upcite{wen_hrrp_2020}。雷达应用中普遍存在显著的域偏移问题，这源于传感器差异、成像条件变化、目标姿态敏感性、噪声特性不同以及仿真数据与实测数据间的鸿沟等\upcite{wen_hrrp_2020, liu_attribute-informed_2025}，这些因素都会严重限制知识迁移的效果，导致模型在目标域性能下降\upcite{wen_hrrp_2020}。
 % 为缓解域偏移问题，领域自适应（Domain Adaptation, DA）技术致力于显式地减小源域和目标域之间的分布差异，以提升模型的跨域泛化能力\upcite{li_mtbc_2025, li_episodic_2019}。这通常通过两种主要途径实现：一是在特征空间中对齐不同域的数据分布，例如通过最小化最大均值差异（Maximum Mean Discrepancy, MMD）或进行相关性对齐；二是利用对抗学习机制，训练一个域判别器来区分样本来源，同时优化特征提取器以生成令域判别器混淆（即域不变）的特征\upcite{zhong_contrastive_2023, xu_effective_2024}。例如，文献\upcite{li_episodic_2019}提出了一种情景训练（Episodic Training）方法，它在训练过程中模拟域之间的转换，从而增强模型对于未见域的泛化性能；文献\upcite{zhong_contrastive_2023}针对HRRP方位角缺失问题（可视为一种域偏移），运用对比自监督学习框架来提取对目标方位角变化具有不变性的特征表示；而文献\upcite{xu_effective_2024}则采用了对比对抗训练（CAT）策略来生成更具挑战性的HRRP增广样本，通过提升模型对困难样本的辨识能力间接增强了其在不同数据分布下的鲁棒性。
 
 三是基于元学习（Meta-Learning）的策略\upcite{liu_few-shot_2021, li_libfewshot_2023}。元学习，常被称为“学会学习”（learning to learn），其核心目标是使模型能从一系列相关的训练任务中习得跨任务的通用知识或学习策略，进而能够在面对仅有少量标注样本的新任务时，快速适应并实现有效泛化\upcite{finn_model-agnostic_2017, li_libfewshot_2023}。这一思想可以追溯到对归纳偏置学习的研究\upcite{baxter_model_2000}，并在深度学习时代得到了蓬勃发展。元学习通常采用“任务式”（Task-based）的训练框架，又叫S/Q Training或Episodic Training\upcite{li_episodic_2019, vinyals_matching_2016}，模拟小样本学习的场景。
 
-在当前的元学习范式下，主要形成了两大类主流方法：一类是基于优化的元学习。其代表性工作是Finn等\upcite{finn_model-agnostic_2017}提出的模型无关元学习（Model-Agnostic Meta-Learning, MAML），它旨在寻找一个对任务损失极其敏感的初始化参数，使得模型在新任务上只需通过少量梯度更新步骤就能快速达到良好的性能\upcite{raghu_rapid_2020, zhou_task_2021}。后续研究也围绕MAML的计算效率和稳定性进行了改进，例如OpenAI\upcite{nichol_reptile_2018}提出的Reptile、Yang\upcite{yang_few-shot_2022}等提出的一阶近似方法以及Rajeswaran等\upcite{rajeswaran_meta-learning_2019}提出的隐式梯度等。另一类是基于度量的元学习。这类方法的核心不在于优化模型参数本身，而是学习一个优质的嵌入空间以及一个有效的相似性度量函数\upcite{vinyals_matching_2016, snell_prototypical_2017}。目标是在这个空间中，能够基于少量支持样本有效地对查询样本进行分类。早期的代表性工作如Vinyals等\upcite{vinyals_matching_2016}提出的匹配网络（Matching Networks, MN）利用注意力机制来计算查询样本与支持样本的相似度。随后，Snell等\upcite{snell_prototypical_2017}的原型网络（Prototypical Networks, ProtoNet）提出了一种更简洁的思路，即计算每个类别的原型（通常是支持集样本嵌入的均值），然后基于查询样本嵌入与各类别原型的距离进行分类，因其简单有效而被广泛应用于包括RATR在内的诸多领域\upcite{tian_open_2022, liu_contrastive_2023, li_few-shot_2023}。此外，Sung等\upcite{sung_relation_2018}提出的关系网络（Relation Network，RelationNet）则通过学习一个神经网络来直接建模样本对之间的关系得分。总体而言，元学习为系统性地解决小样本问题提供了一个强大的理论框架，其“快速适应”和“从少量样本中学习”的核心理念与RATR在非合作目标、数据获取困难等实际场景下的迫切需求高度契合\upcite{liu_multi-polarization_2021}，近年来已成为小样本RATR研究的重要方向，展现出巨大的应用潜力\upcite{liu_few-shot_2021, kong_few-shot_2023, li_prior_2024}。
-
 % --- 插入图1.4：Few-Shot Learning 任务示意图 ---
 \begin{figure}[h!]
     \centering
     % \fbox{图 1.4: Few-Shot Learning 任务设置示意图 (占位符)}
-    \includegraphics[width=0.8\linewidth]{figures/fsl.pdf}
-    \caption{小样本学习领域在光学领域进展迅速}
+    \includegraphics[width=0.9\linewidth]{figures/fsl.pdf}
+    \caption{小样本学习在光学领域进展迅速}
     \label{fig:fsl_task}
 \end{figure}
+
+在当前的元学习范式下，主要形成了两大类主流方法：一类是基于优化的元学习。其代表性工作是Finn等\upcite{finn_model-agnostic_2017}提出的模型无关元学习（Model-Agnostic Meta-Learning, MAML），它旨在寻找一个对任务损失极其敏感的初始化参数，使得模型在新任务上只需通过少量梯度更新步骤就能快速达到良好的性能\upcite{raghu_rapid_2020, zhou_task_2021}。后续研究也围绕MAML的计算效率和稳定性进行了改进，例如OpenAI\upcite{nichol_reptile_2018}提出的Reptile、Yang\upcite{yang_few-shot_2022}等提出的一阶近似方法以及Rajeswaran等\upcite{rajeswaran_meta-learning_2019}提出的隐式梯度等。另一类是基于度量的元学习。这类方法的核心不在于优化模型参数本身，而是学习一个优质的嵌入空间以及一个有效的相似性度量函数\upcite{vinyals_matching_2016, snell_prototypical_2017}。目标是在这个空间中，能够基于少量支持样本有效地对查询样本进行分类。早期的代表性工作如Vinyals等\upcite{vinyals_matching_2016}提出的匹配网络（Matching Networks, MN）利用注意力机制来计算查询样本与支持样本的相似度。随后，Snell等\upcite{snell_prototypical_2017}的原型网络（Prototypical Networks, ProtoNet）提出了一种更简洁的思路，即计算每个类别的原型（通常是支持集样本嵌入的均值），然后基于查询样本嵌入与各类别原型的距离进行分类，因其简单有效而被广泛应用于包括RATR在内的诸多领域\upcite{tian_open_2022, liu_contrastive_2023, li_few-shot_2023}。此外，Sung等\upcite{sung_relation_2018}提出的关系网络（Relation Network，RelationNet）则通过学习一个神经网络来直接建模样本对之间的关系得分。总体而言，元学习为系统性地解决小样本问题提供了一个强大的理论框架，其“快速适应”和“从少量样本中学习”的核心理念与RATR在非合作目标、数据获取困难等实际场景下的迫切需求高度契合\upcite{liu_multi-polarization_2021}，近年来已成为小样本RATR研究的重要方向，展现出巨大的应用潜力\upcite{liu_few-shot_2021, kong_few-shot_2023, li_prior_2024}。
 
 随着元学习在光学图像小样本识别领域取得显著成功，一部分研究者开始将其引入小样本RATR问题中。这些初步尝试探索了不同元学习策略的应用：例如，高飞等\upcite{gao_metric_2021}提出基于度量学习的SAR识别方法；Wang等\upcite{wang_meta_2021}结合概率推断与元学习进行仿真到实测的知识迁移；Fu等\upcite{fu_meta_2022}则将Meta-SGD与迁移学习结合。然而，当前基于元学习的RATR工作多数仍停留在直接应用层面，即将在光学图像识别中验证有效的元学习算法直接应用于雷达数据，往往未能充分考虑雷达信号固有的物理特性和独特的敏感性\upcite{jian_survey_2022, guo_influence_2013, liu_ms_2021}。这种“直接移植”忽略了雷达数据的领域特殊性，导致算法性能常常无法达到预期\upcite{liu_ms_2021}。因此，本文认为，必须深入结合雷达数据的特有属性对现有元学习框架进行针对性的改进与设计，才能发展出真正适合小样本RATR任务的算法，从而有效利用元学习的快速学习能力和强表征能力，提升识别准确率和泛化性能。由于课题研究的时间限制以及HRRP在RATR中的基础性和广泛应用，本文工作聚焦在基于HRRP的RATR研究上。具体而言，将这些通用的元学习方法应用于复杂的HRRP RATR场景时，仍面临一系列严峻的、与雷达数据特性相关的具体问题，这正是本文需着力解决的关键：
 
