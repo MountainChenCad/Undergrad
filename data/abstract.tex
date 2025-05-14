@@ -1,21 +1,32 @@
 \begin{cabstract}
-国防科技大学是一所直属中央军委的综合性大学。1984年,学校经国务院、中央军委和教育部批准首批成立研究生院，%
-肩负着为全军培养高级科学和工程技术人才与指挥人才，培训高级领导干部，从事先进武器装备和国防关键技术研究的重要任务。%
-国防科技大学是全国重点大学，也是全国首批进入国家“211工程” 建设并获中央专项经费支持的全国重点院校之一。%
-学校前身是1953年创建于哈尔滨的中国人民解放军军事工程学院，简称“哈军工”。
+空天目标雷达自动目标识别（Radar Automatic Target Recognition，RATR）是现代国防与空天态势感知的关键技术，对维护国家安全具有重要战略价值。深度学习技术显著推动了RATR的发展，但其应用在处理高分辨率距离像（High Resolution Range Profile，HRRP）数据时，面临严峻的小样本问题。由于数据获取、标注困难及域差异等因素，高质量标注样本匮乏严重制约了深度学习模型性能，导致其在小样本条件下泛化能力不足。同时，HRRP对噪声和目标姿态角变化的高度敏感性，进一步加剧了小样本学习的挑战性，使现有方法难以在复杂环境中取得理想效果。
+
+针对上述挑战，本文以元学习范式为理论框架，聚焦基于HRRP的小样本空天目标识别，重点探索克服信号噪声敏感性、角度敏感性及小样本下特征判别能力不足的技术途径。研究旨在发展能在复杂、动态、数据受限环境下实现鲁棒、高效识别的RATR方法，为提升我国在该领域的技术能力提供一定的理论参考和技术借鉴。主要工作内容概括如下：
+
+第二章对小样本HRRP RATR的理论和问题进行阐述分析。分析了HRRP成像机理与模型，揭示了噪声和角度敏感性这两大影响识别性能的关键物理因素。回顾了深度学习在RATR中的应用框架与模型，并对小样本学习与元学习问题进行了形式化界定，介绍了其核心思想与主流范式，为后续研究奠定理论基础。
+
+第三章针对小样本条件下RATR模型受噪声影响更加显著的基础性问题，提出了一种基于动态图元学习的识别方法HRRPGraphNet++。该方法将HRRP距离单元视作图节点，设计了结合物理先验与数据驱动注意力的动态图构建策略以适应不同噪声水平。通过图神经网络（Graph Neural Network，GNN）在动态图上学习稳健的结构化特征，并将此机制整合入面向鲁棒性优化的元学习框架MAML++进行训练，旨在使模型获得快速适应未知噪声环境的识别能力。实验初步验证了该方法在低信噪比和小样本条件下提升性能的潜力。
+
+第四章针对小样本条件下HRRP角度敏感性的核心特性问题，探索了基于样本间关系挖掘的元学习方法GAF-MLGNN。该方法利用格拉姆角场（Gramain Angular Field，GAF）变换对HRRP样本进行预处理，并利用GNN显式建模学习样本间的潜在关系。通过将针对图学习过程设计元学习框架MLGNN（Meta Learning for Graph Neural Network），该方法旨在使模型学习理解HRRP随角度变化的规律，提升跨角度泛化能力。实验表明挖掘样本间关系有助于改善小样本识别性能。
+
+第五章针对仅依赖物理特征在小样本和细粒度区分场景下严重局限HRRP RATR性能的问题，研究了融合外部知识的途径，提出了基于协同跨模态适配的SHARP（Synergistic HRRP Adaptation for Recognition Prototypes）方法。该方法利用大规模预训练视觉语言模型（Vision-Language Model，VLM）的表征能力，通过设计轻量级适配器将HRRP信号转换为伪图像形式。关键在于适配器的协同训练目标，它联合优化跨模态对齐和视觉特征对比学习，以缓解“语义偏见”。推理阶段结合语义信息精炼类别原型，旨在提升识别精度。仿真和嵌入式平台部署实测数据实验验证了引入外部语义信息的有效性。
+
 \end{cabstract}
-\ckeywords{国防科技大学; 211; 哈军工}
+
+\ckeywords{雷达自动目标识别；一维距离像；小样本学习；元学习；深度学习}
 
 \begin{eabstract}
-National University of Defense Technology is a comprehensive national key university based in Changsha, %
-Hunan Province, China. It is under the dual supervision of the Ministry of National Defense %
-and the Ministry of Education, designated for Project 211 and Project 985, %
-the two national plans for facilitating the development of Chinese higher education. %
+Radar Automatic Target Recognition (RATR) for aerospace targets is a critical technology for modern national defense and aerospace situational awareness, possessing significant strategic value for maintaining national security. Deep learning has markedly advanced the development of RATR. However, its application, particularly in processing High-Resolution Range Profile (HRRP) data, faces a severe few-shot problem. Due to challenges in data acquisition, annotation difficulties, and domain differences, the scarcity of high-quality labeled samples severely restricts the performance of deep learning models, leading to insufficient generalization ability under few-shot conditions. Concurrently, the high sensitivity of HRRP to noise and variations in target aspect angle further exacerbates the challenges of few-shot learning, making it difficult for existing methods to achieve satisfactory results in complex environments.
 
-NUDT was originally founded in 1953 as the Military Academy of Engineering in Harbin of Heilongjiang Province. %
-In 1970 the Academy of Engineering moved southwards to Changsha and was renamed Changsha Institute of Technology.%
- The Institute changed its name to National University of Defense Technology in 1978.
+Addressing the aforementioned challenges, this paper adopts the meta-learning para-digm as its theoretical framework, focusing on few-shot aerospace target recognition based on HRRP. It specifically explores technical approaches to overcome sensitivity to signal noise and aspect angle, as well as the issue of insufficient feature discriminability under few-shot conditions. The research aims to develop robust and efficient RATR methods capable of achieving reliable recognition in complex, dynamic, and data-limited environments, thereby providing theoretical reference and technical insights to enhance technological capabilities in this field. The main content is summarized as follows:
 
+Chapter 2 elaborates on the theory and problems associated with few-shot HRRP RATR. It analyzes the HRRP imaging mechanism and model, identifying noise and angle sensitivity as the two key physical factors affecting recognition performance. It reviews the application frameworks and models of deep learning in RATR, provides formal definitions for few-shot learning and meta-learning problems, and introduces their core ideas and mainstream paradigms, laying the theoretical foundation for subsequent research.
+
+Chapter 3 addresses the fundamental issue that RATR models are more significantly impacted by noise under few-shot conditions, proposing a recognition method based on dynamic graph meta-learning, HRRPGraphNet++. This method treats HRRP range cells as graph nodes and designs a dynamic graph construction strategy that combines physical priors with data-driven attention to adapt to varying noise levels. By learning robust structured features on the dynamic graph using a Graph Neural Network (GNN) and integrating this mechanism into the MAML++ meta-learning framework optimized for robustness, the approach aims to enable the model to rapidly adapt its recognition capabilities to unknown noise environments. Preliminary experiments have validated the method's potential for performance improvement under low Signal-to-Noise Ratio (SNR) and few-shot conditions.
+
+Chapter 4 tackles the core challenge of HRRP angle sensitivity under few-shot conditions by exploring a meta-learning method based on mining inter-sample relationships, GAF-MLGNN. This method preprocesses HRRP samples using the Gramian Angular Field (GAF) transformation and utilizes a GNN to explicitly model and learn the latent relationships between samples. By designing the Meta Learning for Graph Neural Network (MLGNN) framework specifically for the graph learning process, the method aims to enable the model to understand the patterns of HRRP variation with angle, thereby enhancing cross-angle generalization ability. Experiments demonstrate that mining inter-sample relationships contributes to improving few-shot recognition performance.
+
+Chapter 5 addresses the severe limitation imposed on HRRP RATR performance by relying solely on physical features, particularly in few-shot scenarios. It investigates the integration of external knowledge and proposes the Synergistic HRRP Adaptation for Recognition Prototypes (SHARP) method based on synergistic cross-modal adaptation. This method leverages the representation capabilities of large-scale pre-trained Vision-Language Models (VLMs) by designing lightweight adapters to transform HRRP signals into a pseudo-image format. The key lies in the adapter's synergistic training objective, which jointly optimizes cross-modal alignment and visual feature contrastive learning to mitigate ``semantic bias.'' During the inference stage, semantic information is used to refine class prototypes, aiming to improve recognition accuracy. Experiments using simulations and measured data from deployment on embedded platforms validate the effectiveness of incorporating external semantic information.
 \end{eabstract}
-\ekeywords{NUDT; MND; ME}
+\ekeywords{Radar Automatic Target Recognition (RATR); High Resolution Range Profile (HRRP); Few-shot Learning (FSL); Meta Learning; Deep Learning}
 
